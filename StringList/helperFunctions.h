@@ -10,7 +10,7 @@ int PromptIntInRange(int start, int end);
 
 int MainMenu();
 
-char* inputString();
+char* InputString();
 
 
 #endif // !HELPER_FUNCTIONS_H

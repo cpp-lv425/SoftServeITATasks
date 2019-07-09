@@ -1,18 +1,18 @@
 #include <iostream>
 
 // includes implementation of the StringList
-#include "StringList.h"
+#include "stringlist.h"
 
 // includes functions which make it easier to use
 // the functionality of StringList (e.g. to output the list)
-#include "helperFunctions.h"
+#include "helperfunctions.h"
 
 using std::cout;
 
 int main()
 {
-    char*** StringList = nullptr;
-    StringListInit(StringList);
+    char** StringList = nullptr;
+    StringListInit(&StringList);
 
     while (true)
     {
@@ -30,31 +30,31 @@ int main()
         case 1:
         {
             cout << "Enter new string: ";
-            char* newStr = inputString();
-            StringListAdd(*StringList, newStr);
-            TraverseList(*StringList);
+            char* newStr = InputString();
+            StringListAdd(StringList, newStr);
+            TraverseList(StringList);
             break;
         }
         case 2:
         {
             cout << "Enter a string occurrences of which must be removed from the list: ";
-            char* str = inputString();
-            StringListRemove(*StringList, str);
-            TraverseList(*StringList);
+            char* str = InputString();
+            StringListRemove(StringList, str);
+            TraverseList(StringList);
             break;
         }
         case 3:
         {
             cout << "Number of strings in the list: "
-                 << StringListSize(*StringList)
+                 << StringListSize(StringList)
                  << '\n';
             break;
         }
         case 4:
         {
             cout << "Enter a string to find out its index in the list: ";
-            char* str = inputString();
-            int idx = StringListIndexOf(*StringList, str);
+            char* str = InputString();
+            int idx = StringListIndexOf(StringList, str);
             if(idx == -1)
                 cout << "There is no such string in the list.\n";
             else
@@ -64,36 +64,36 @@ int main()
         }
         case 5:
         {
-            StringListRemoveDuplicates(*StringList);
+            StringListRemoveDuplicates(StringList);
             cout << "Duplicates removed.\n";
-            TraverseList(*StringList);
+            TraverseList(StringList);
             break;
         }
         case 6:
         {
             cout << "Enter a sub-string which must be replaced in list: ";
-            char* before = inputString();
+            char* before = InputString();
             cout << "Enter a sub-string which must be put instead of previous sub-string: ";
-            char* after = inputString();
-            StringListReplaceInStrings(*StringList, before, after);
-            TraverseList(*StringList);
+            char* after = InputString();
+            StringListReplaceInStrings(StringList, before, after);
+            TraverseList(StringList);
             break;
         }
         case 7:
         {
             cout << "List has been sorted.\n";
-            StringListSort(*StringList);
-            TraverseList(*StringList);
+            StringListSort(StringList);
+            TraverseList(StringList);
             break;
         }
         case 8:
         {
-            TraverseList(*StringList);
+            TraverseList(StringList);
             break;
         }
         case 9:
         {
-            StringListDestroy(StringList);
+            StringListDestroy(&StringList);
             return 0;
         }
         }

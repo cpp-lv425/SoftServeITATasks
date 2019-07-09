@@ -106,7 +106,4 @@ private:
     };
 };
 
-
-
-
 #endif // ANYTYPE_H

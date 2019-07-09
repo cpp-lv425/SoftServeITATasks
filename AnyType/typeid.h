@@ -1,7 +1,6 @@
 #ifndef TYPEID_H
 #define TYPEID_H
 
-
 enum class TypeNum
 {
     UNKNOWN_TYPE = 0,
@@ -47,7 +46,5 @@ inline int getTypeId(char value)
 {
     return static_cast<int>(TypeNum::CHAR);
 }
-
-
 
 #endif // TYPEID_H

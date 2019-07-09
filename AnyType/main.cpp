@@ -6,7 +6,6 @@ using std::cerr;
 
 int main()
 {
-    cout << sizeof (AnyType) << '\n';
     AnyType any = '*';
     AnyType other(std::move(any));
     AnyType oneMore;
@@ -24,7 +23,6 @@ int main()
     {
         cerr << e.what() << '\n';
     }
-
 
     return 0;
 }

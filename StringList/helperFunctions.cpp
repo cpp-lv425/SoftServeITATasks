@@ -1,4 +1,4 @@
-#include "helperFunctions.h"
+#include "helperfunctions.h"
 #include <iostream>
 #include <limits>
 #include <cstring>
@@ -10,18 +10,18 @@ using std::ios_base;
 
 void TraverseList(char** list)
 {
-    std::cout << "The list consists of the following items:\n\n";
-    char*** cur = reinterpret_cast<char***>(list);
+    cout << "The list consists of the following items:\n\n";
+    char*** cur = reinterpret_cast<char***>(list[1]);
 
     for (int i = 1; cur;
          ++cur = reinterpret_cast<char***>(*cur), ++i)
     {
-        std::cout << "Item No. " << i
+        cout << "Item No. " << i
                   << '\t' << reinterpret_cast<char*>(cur[0])
                 << '\n';
     }
 
-    std::cout << "\n\n";
+    cout << "\n\n";
 }
 
 int PromptIntInRange(int start, int end)
@@ -38,7 +38,7 @@ int PromptIntInRange(int start, int end)
                 throw std::exception();
             break;
         }
-        catch (ios_base::failure& e)
+        catch (const ios_base::failure& e)
         {
             cout << "\nIncorrect input. Enter an integer.\n";
             cin.clear();
@@ -74,7 +74,7 @@ int MainMenu()
     return PromptIntInRange(1, 9);
 }
 
-char* inputString()
+char* InputString()
 {
     char* buf = static_cast<char*>(malloc(sizeof(char) * 100));
 

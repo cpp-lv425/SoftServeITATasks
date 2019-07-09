@@ -4,10 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        StringList.cpp \
-        helperFunctions.cpp \
-        main.cpp
+        helperfunctions.cpp \
+        main.cpp \
+        stringlist.cpp
 
 HEADERS += \
-    StringList.h \
-    helperFunctions.h
+    helperfunctions.h \
+    stringlist.h

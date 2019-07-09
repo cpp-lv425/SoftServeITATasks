@@ -1,6 +1,4 @@
 #include "anytype.h"
-#include <iostream>
-
 
 AnyType::AnyType():holder(TypeNum::UNKNOWN_TYPE)
 {
@@ -82,8 +80,6 @@ AnyType &AnyType::operator=(char c_)
     return *this;
 }
 
-
-
 int AnyType::toInt() const
 {
     if(holder.typeNum != getTypeId(holder.data.i))
@@ -124,8 +120,6 @@ char AnyType::toChar() const
     return holder.data.c;
 }
 
-
-
 void AnyType::swap(AnyType &other)
 {
     std::swap(holder, other.holder);
@@ -145,9 +139,3 @@ const char *AnyType::typeName() const
 {
     return typeNames.at(holder.typeNum);
 }
-
-
-
-
-
-
