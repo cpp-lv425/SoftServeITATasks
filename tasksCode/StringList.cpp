@@ -2,7 +2,7 @@
 	Set of the interface functions for using the dynamic list of c strings. Done
 	on the SoftServe' demand. According to the convention the functions starting
 	with underline, e.g. <_FuncName>, are hidden and as they don't relate to the
-	interface should not be used. Exceptiona type - const char *.
+	interface should not be used. Exception type - const char *.
 	Author:						Valentyn Faychuk
 	E-mail:						faitchouk.valentyn@gmail.com
 	Created on:					06.07.2019
@@ -10,14 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Type for the string intself
+// Type for the string itself
 typedef char * String;
 // Types for the list size as well as string sizes
 typedef int StringListSizeType;
 typedef int StringSizeType;
 
 const char * g_badAllocMessage = "Bad memory allocation";
-const char * g_NULLPtrParameterMessage = "NULL pointer as a parameter";
+const char * g_NULLPtrParameterMessage = "nullptr as a parameter";
 
 // ******************************************************************* CONTROLLERS
 
@@ -37,10 +37,10 @@ int StringListSize(char ** list);
 // Give the allocation size of the list
 StringListSizeType _StringListAllocatedSize(char ** list);
 
-// Return the index position of the first occurance of the str in the list
+// Return the index position of the first occurrence of the str in the list
 int StringListIndexOf(char ** list, const char * str);
 
-// Return the index position of the first occurance of the str in the list
+// Return the index position of the first occurrence of the str in the list
 // Start its search from given index if the start parameter is present
 StringListSizeType _StringListIndexOf(char ** list, const char *, StringListSizeType start);
 
@@ -63,7 +63,7 @@ void StringListReplaceInStrings(char ** list, const char * before, const char * 
 // Sort the strings in ascending order
 void StringListSort(char ** list);
 
-// Sort the strings in ascending order via the quicksort algorithm using partitions
+// Sort the strings in ascending order via the quick-sort algorithm using partitions
 void _StringListSort(char ** list, StringListSizeType begin, StringListSizeType pivot);
 
 // Shrink allocated memory to fit all the elements in the list
@@ -74,26 +74,26 @@ void StringListShrinkToFit(char *** list);
 void StringListInit(char *** list)
 {
 	// Hold the damage
-	if (list == NULL) return;
+	if (list == nullptr) return;
 	// Allocate place for the listSize, allocSize metadata fields + stringList itself
 	// and set the listSize = 0 as well as allocSize = 1
 	// General structure:		[listSize] [allocSize] [firstElement] ... [lastElement]
-	// Created instance:		[ 0 ] [ 1 ] [NULL]
+	// Created instance:		[ 0 ] [ 1 ] [nullptr]
 	StringListSizeType * stringListWithSizes =
 		static_cast<StringListSizeType *>(malloc(sizeof(StringListSizeType) * 2 + sizeof(char **)));
-	if (stringListWithSizes == NULL) throw g_badAllocMessage;
+	if (stringListWithSizes == nullptr) throw g_badAllocMessage;
 	*stringListWithSizes = 0;
 	*(++stringListWithSizes) = 1;
 	// Create correct pointer to the stringList and push it's address into the variable list
 	// [list] -> [char **] -> [firstElement] [secondElement] ... [lastElement]
 	*list = reinterpret_cast<char **>(++stringListWithSizes);
-	(*list)[0] = NULL;
+	(*list)[0] = nullptr;
 }
 
 void StringListDestroy(char *** list)
 {
 	// Hold the damage
-	if (list == NULL || *list == NULL) return;
+	if (list == nullptr || *list == nullptr) return;
 	// Free all the strings inside the stringList
 	StringListSizeType stringListSize = StringListSize(*list);
 	for (StringListSizeType stringIndex{ 0 }; stringIndex < stringListSize; ++stringIndex) {
@@ -102,14 +102,14 @@ void StringListDestroy(char *** list)
 	// Free the stringList including the metadata fields
 	StringListSizeType * stringListWithSizes = reinterpret_cast<StringListSizeType *>(*list) - 2;
 	free(stringListWithSizes);
-	// Return the NULL pointer
-	*list = NULL;
+	// Return the nullptr pointer
+	*list = nullptr;
 }
 
 inline int StringListSize(char ** list)
 {
-	// Distribute the damage to prevent hazard - throw an exception if the list is NULL
-	if (list == NULL) throw g_NULLPtrParameterMessage;
+	// Distribute the damage to prevent hazard - throw an exception if the list is nullptr
+	if (list == nullptr) throw g_NULLPtrParameterMessage;
 	/*
 	   Get the stringList size from the metadata
 	   [ listSize ] [ allocSize ] [ firstElement ] ... [ lastElement ]
@@ -134,13 +134,13 @@ inline StringListSizeType _StringListAllocatedSize(char ** list)
 
 inline int StringListIndexOf(char ** list, const char * str)
 {
-	// Distribute the damage to prevent hazard - throw an exception if the list is NULL
-	if (list == NULL) throw g_NULLPtrParameterMessage;
+	// Distribute the damage to prevent hazard - throw an exception if the list is nullptr
+	if (list == nullptr) throw g_NULLPtrParameterMessage;
 	// Compare strings one by one until the similarity found and return the index of similarity
 	// In the contrast case return the size of the list which is the index "right after the end"
 	StringListSizeType stringListSize = StringListSize(list);
 	// Hold the damage
-	if (str == NULL) return stringListSize;
+	if (str == nullptr) return stringListSize;
 	for (StringListSizeType stringIndex{ 0 }; stringIndex < stringListSize; ++stringIndex)
 		if (!memcmp(str, list[stringIndex], strlen(str) + 1)) return stringIndex;
 	return stringListSize;
@@ -159,23 +159,23 @@ inline StringListSizeType _StringListIndexOf(char ** list, const char * str, Str
 void StringListAdd(char *** list, const char * str)
 {
 	//Hold the damage
-	if (list == NULL || *list == NULL || str == NULL) return;
-	// Get the total quantity of placed strings and the total quantity of allocated "ready to use" strings
+	if (list == nullptr || *list == nullptr || str == nullptr) return;
+	// Get the total quantity of placed strings and the total quantity of allocated places for potential strings
 	StringListSizeType listSize = StringListSize(*list);
 	StringListSizeType allocSize = _StringListAllocatedSize(*list);
-	// Allocate enough memory and place new string instance to the list if needed
+	// Allocate enough memory to place there new string instance (if needed)
 	if (++listSize > allocSize) {
 		allocSize *= 2;
 		StringListSizeType * stringListWithSizes = reinterpret_cast<StringListSizeType *>(*list) - 2;
 		stringListWithSizes = static_cast<StringListSizeType *>(
 			realloc(stringListWithSizes, sizeof(StringListSizeType) * 2 + sizeof(char **)*allocSize));
-		if(stringListWithSizes == NULL) throw g_badAllocMessage;
+		if(stringListWithSizes == nullptr) throw g_badAllocMessage;
 		*list = reinterpret_cast<char **>(stringListWithSizes + 2);
 	}
 	// Add the string instance to the list
 	StringSizeType strSize = strlen(str) + 1;
 	(*list)[listSize - 1] = static_cast<String>(malloc(sizeof(char) * strSize));
-	if ((*list)[listSize - 1] == NULL) throw g_badAllocMessage;
+	if ((*list)[listSize - 1] == nullptr) throw g_badAllocMessage;
 	memcpy((*list)[listSize - 1], str, strSize);
 	// Change the metadata fields
 	StringListSizeType * stringListWithSizes = reinterpret_cast<StringListSizeType *>(*list) - 2;
@@ -186,10 +186,10 @@ void StringListAdd(char *** list, const char * str)
 void StringListRemoveDuplicates(char ** list)
 {
 	// Hold the damage
-	if (list == NULL) return;
+	if (list == nullptr) return;
 	/*
 	   Check the duplicates presence for each string in the list
-	   If the duplicate for a certain string is present remove the first occurance of this string
+	   If the duplicate for a certain string is present remove the first occurrence of this string
 	   Then try to find another duplicate and repeat actions until the duplicates will be removed
 	*/
 	StringListSizeType stringListSize = StringListSize(list);
@@ -215,7 +215,7 @@ void StringListRemoveDuplicates(char ** list)
 void StringListRemove(char ** list, const char * str)
 {
 	// Hold the damage
-	if (list == NULL || str == NULL) return;
+	if (list == nullptr || str == nullptr) return;
 	// Get the size of the list and the index of the string to be removed
 	StringListSizeType stringIndex = StringListIndexOf(list, str);
 	StringListSizeType stringListSize = StringListSize(list);
@@ -226,12 +226,12 @@ void StringListRemove(char ** list, const char * str)
 	   For example if i is to be removed:
 	   [ 1 ] [ 2 ]  ...  [i-1] [ i ] [i+1] [i+2]  ...  [n-1] [ n ]
 		   \     \           \        /     /     /     /     /
-		  [ 1 ] [ 2 ]  ...  [i-1] [i+1] [i+2] [i+3]  ...  [ n ] [NULL]
+		  [ 1 ] [ 2 ]  ...  [i-1] [i+1] [i+2] [i+3]  ...  [ n ] [nullptr]
 	*/
 	free(list[stringIndex]);
 	while (++stringIndex < stringListSize)
 		list[stringIndex - 1] = list[stringIndex];
-	list[stringIndex] = NULL;
+	list[stringIndex] = nullptr;
 	// Change the size field in metadata
 	StringListSizeType * stringListWithSizes = reinterpret_cast<StringListSizeType *>(list) - 2;
 	*stringListWithSizes = stringListSize - 1;
@@ -240,15 +240,15 @@ void StringListRemove(char ** list, const char * str)
 void StringListReplaceInStrings(char ** list, const char * before, const char * after)
 {
 	// Hold the damage
-	if (list == NULL || before == NULL || after == NULL) return;
-	// Iterate through similar strings to before and remplace them with after
+	if (list == nullptr || before == nullptr || after == nullptr) return;
+	// Iterate through similar strings to before and replace them with after
 	StringListSizeType stringIndex = StringListIndexOf(list, before);
 	StringListSizeType stringListSize = StringListSize(list);
 	while (stringIndex < stringListSize) {
 		StringSizeType afterSize = strlen(after) + 1;
 		String temporaryString =
 			static_cast<String>(realloc(list[stringIndex], sizeof(char) * afterSize));
-		if (temporaryString == NULL) throw g_badAllocMessage;
+		if (temporaryString == nullptr) throw g_badAllocMessage;
 		list[stringIndex] = temporaryString;
 		memcpy(list[stringIndex], after, afterSize);
 		stringIndex = _StringListIndexOf(list, before, stringIndex);
@@ -258,7 +258,7 @@ void StringListReplaceInStrings(char ** list, const char * before, const char * 
 void StringListSort(char ** list)
 {
 	// Hold the damage
-	if (list == NULL) return;
+	if (list == nullptr) return;
 	/*
 	   Standard quick sort principle, though the pivot is always taken at
 	   the end of the list
@@ -268,10 +268,10 @@ void StringListSort(char ** list)
 
 void _StringListSort(char ** list, StringListSizeType begin, StringListSizeType pivot)
 {
-	// Remeber the index of end and bufferize the pivot string
+	// Remember the index of end and cache the pivot string
 	StringListSizeType end = pivot;
 	String pivotString = list[pivot];
-	// Get size of the pivot c string for memcmp function
+	// Get size of the pivot c string for "memcmp" function
 	StringSizeType pivotStringSize = strlen(pivotString) + 1;
 	/*
 	   Iterate over strings before the pivot string and
@@ -306,7 +306,7 @@ void _StringListSort(char ** list, StringListSizeType begin, StringListSizeType 
 void StringListShrinkToFit(char *** list)
 {
 	//Hold the damage
-	if (list == NULL || *list == NULL) return;
+	if (list == nullptr || *list == nullptr) return;
 	StringListSizeType allocSize = StringListSize(*list);
 	// Allocate enough memory to hold all list elements and change the metadata allocSize field
 	StringListSizeType * stringListWithSizes = reinterpret_cast<StringListSizeType *>(*list) - 2;
