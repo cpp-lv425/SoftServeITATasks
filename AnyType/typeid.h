@@ -11,6 +11,16 @@ enum class TypeNum
     CHAR
 };
 
+const char typeNames[][20]
+{
+    "unknown type",
+    "int",
+    "bool",
+    "double",
+    "float",
+    "char"
+};
+
 template<class T>
 inline int getTypeId(T value)
 {

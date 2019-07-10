@@ -94,16 +94,6 @@ private:
     };
 
     Holder holder;
-
-    std::vector<const char*> typeNames
-    {
-        "unknown type",
-        "int",
-        "bool",
-        "double",
-        "float",
-        "char"
-    };
 };
 
 #endif // ANYTYPE_H

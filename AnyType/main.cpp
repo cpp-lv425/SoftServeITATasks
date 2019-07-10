@@ -11,13 +11,13 @@ int main()
     AnyType oneMore;
     oneMore = other;
     other = 34.6f;
-    oneMore.swap(other);
+    oneMore.swap(other);    
 
     try
     {
         cout << oneMore.toFloat() << '\n'
              << "Contained value type: " << oneMore.typeName()
-             << '\n';
+             << '\n';        
     }
     catch (const AnyType::BadAnyCast& e)
     {

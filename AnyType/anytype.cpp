@@ -137,5 +137,7 @@ TypeNum AnyType::type() const
 
 const char *AnyType::typeName() const
 {
-    return typeNames.at(holder.typeNum);
+    return typeNames[holder.typeNum];
 }
+
+
