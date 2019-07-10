@@ -42,14 +42,14 @@ private:
 	// Set the default internal value' data
 	void SetValueData();
 
-	// Set the internal value' data, based on the give value
+	// Set the internal value' data, based on the given value
 	template <typename Type>
 	void SetValueData(const Type & value);
 	
 	// Set the default internal value' type
 	void SetValueType();
 	
-	// Set the internal value' type, based on the give value
+	// Set the internal value' type, based on the given value
 	template <typename Type>
 	void SetValueType(const Type & value);
 
@@ -60,20 +60,19 @@ public:
 		SetValueType();
 	};
 	
-	// Overloaded parametrized constructor
-	template <typename Type>
-	AnyType(Type value) {
-		SetValueData(value);
-		SetValueType(value);
-	};
-	
+    // Overloaded parametrized universal constructor
+    template <typename Type>
+    AnyType(Type && value) : AnyType() {
+        SetValueData(value);
+        SetValueType(value);
+    };
+
 	// Copy constructor
 	AnyType(const AnyType & anyType) {
 		if (anyType.valueData == nullptr) {
 			// If anyType parameter has deactivated state
 			// deactivate state of the *this object
-			if (valueData != nullptr)
-				delete valueData;
+			delete valueData;
 			valueData = nullptr;
 			this->valueType = anyType.valueType;
 			return;
@@ -84,7 +83,7 @@ public:
 	};
 	
 	// Move constructor
-	AnyType(AnyType && anyType) {
+	AnyType(AnyType && anyType) noexcept {
 		// Deactivate state of the anyType parameter
 		this->valueData = anyType.valueData;
 		anyType.valueData = nullptr;
@@ -97,8 +96,7 @@ public:
 		if (anyType.valueData == nullptr) {
 			// If anyType parameter has deactivated state
 			// deactivate state of the *this object
-			if (valueData != nullptr)
-				delete valueData;
+			delete valueData;
 			valueData = nullptr;
 			this->valueType = anyType.valueType;
 			return *this;
@@ -110,7 +108,7 @@ public:
 	};
 	
 	// Move assignment operator
-	AnyType& operator=(AnyType && anyType) {
+	AnyType& operator=(AnyType && anyType) noexcept {
 		this->valueData = anyType.valueData;
 		anyType.valueData = nullptr;
 		this->valueType = anyType.valueType;
@@ -129,8 +127,8 @@ public:
 	// Overloaded parametrized move assignment operator
 	template <typename Type>
 	AnyType& operator=(Type && value) {
-		SetValueData(std::move(value));
-		SetValueType(std::move(value));
+		SetValueData(std::forward(value));
+		SetValueType(std::forward(value));
 		return *this;
 	};
 
@@ -163,121 +161,121 @@ public:
 	};
 	
 	// Transform to bool, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator bool() const {
+	// otherwise throw bad_cast exception
+    explicit operator bool() const {
 		if (valueType != ValueType::TypeBoolean)
 			throw std::bad_cast{ };
 		return static_cast<bool>((*valueData).valueBool);
 	};
 	
 	// Transform to char, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator char() const {
+	// otherwise throw bad_cast exception
+    explicit operator char() const {
 		if (valueType != ValueType::TypeChar)
 			throw std::bad_cast{ };
 		return static_cast<char>((*valueData).valueChar);
 	};
 	
 	// Transform to unsigned char, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator unsigned char() const {
+	// otherwise throw bad_cast exception
+    explicit operator unsigned char() const {
 		if (valueType != ValueType::TypeUnsignedChar)
 			throw std::bad_cast{ };
 		return static_cast<unsigned char>((*valueData).valueUChar);
 	};
 	
 	// Transform to int, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator int() const {
+	// otherwise throw bad_cast exception
+    explicit operator int() const {
 		if (valueType != ValueType::TypeInt)
 			throw std::bad_cast{ };
 		return static_cast<int>((*valueData).valueLLInt);
 	};
 	
 	// Transform to short, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator short int() const {
+	// otherwise throw bad_cast exception
+    explicit operator short int() const {
 		if (valueType != ValueType::TypeShortInt)
 			throw std::bad_cast{ };
 		return static_cast<short int>((*valueData).valueLLInt);
 	};
 	
 	// Transform to long, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator long int() const {
+	// otherwise throw bad_cast exception
+    explicit operator long int() const {
 		if (valueType != ValueType::TypeLongInt)
 			throw std::bad_cast{ };
 		return static_cast<long int>((*valueData).valueLLInt);
 	};
 	
 	// Transform to long long, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator long long int() const {
+	// otherwise throw bad_cast exception
+    explicit operator long long int() const {
 		if (valueType != ValueType::TypeLongLongInt)
 			throw std::bad_cast{ };
 		return static_cast<long long int>((*valueData).valueLLInt);
 	};
 	
 	// Transform to unsigned, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator unsigned int() const {
+	// otherwise throw bad_cast exception
+    explicit operator unsigned int() const {
 		if (valueType != ValueType::TypeUnsignedInt)
 			throw std::bad_cast{ };
 		return static_cast<unsigned int>((*valueData).valueLLUInt);
 	};
 	
 	// Transform to unsigned short, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator unsigned short int() const {
+	// otherwise throw bad_cast exception
+    explicit operator unsigned short int() const {
 		if (valueType != ValueType::TypeUnsignedShortInt)
 			throw std::bad_cast{ };
 		return static_cast<unsigned short>((*valueData).valueLLUInt);
 	};
 	
 	// Transform to unsigned long, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator unsigned long int() const {
+	// otherwise throw bad_cast exception
+    explicit operator unsigned long int() const {
 		if (valueType != ValueType::TypeUnsignedLongInt)
 			throw std::bad_cast{ };
 		return static_cast<unsigned long int>((*valueData).valueLLUInt);
 	};
 	
 	// Transform to unsigned long long, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator unsigned long long int() const {
+	// otherwise throw bad_cast exception
+    explicit operator unsigned long long int() const {
 		if (valueType != ValueType::TypeUnsignedLongLongInt)
 			throw std::bad_cast{ };
 		return static_cast<unsigned long long int>((*valueData).valueLLUInt);
 	};
 	
 	// Transform to float, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator float() const {
+	// otherwise throw bad_cast exception
+    explicit operator float() const {
 		if (valueType != ValueType::TypeFloat)
 			throw std::bad_cast{ };
 		return static_cast<float>((*valueData).valueLDouble);
 	};
 	
 	// Transform to double, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator double() const {
+	// otherwise throw bad_cast exception
+    explicit operator double() const {
 		if (valueType != ValueType::TypeDouble)
 			throw std::bad_cast{ };
 		return static_cast<double>((*valueData).valueLDouble);
 	};
 	
 	// Transform to long double, if the internal type is bool,
-	// otherwise throw bad_cast exeption
-	operator long double() const {
+	// otherwise throw bad_cast exception
+    explicit operator long double() const {
 		if (valueType != ValueType::TypeLongDouble)
 			throw std::bad_cast{ };
 		return static_cast<long double>((*valueData).valueLDouble);
 	};
 
 	// Transform to other types, not implemented in the class,
-	// generally always throw bad_cast exeption
+	// generally always throw bad_cast exception
 	template <typename Type>
-	operator Type() const {
+    explicit operator Type() const {
 		throw std::bad_cast{ };
 	};
 
@@ -295,8 +293,7 @@ public:
 
 	// Default destructor
 	~AnyType() {
-		if (valueData != nullptr)
-			delete valueData;
+		delete valueData;
 	}
 };
 
@@ -393,8 +390,7 @@ std::string AnyType::GetValueType() const
 // Delete internal data
 void AnyType::DeleteData()
 {
-	if (valueData != nullptr)
-		delete valueData;
+	delete valueData;
 	valueData = nullptr;
 	SetValueType();
 }

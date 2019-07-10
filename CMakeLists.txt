@@ -1,12 +1,17 @@
 cmake_minimum_required (VERSION 3.12)
 project (SoftServeITATasks)
 
-find_package (Boost)
+#set(Boost_DEBUG 1)
+set(BOOST_ROOT "C:/Program Files/boost")
+set(BOOST_LIBRARYDIR "C:/Program Files/boost/lib")
+set(BOOST_INCLUDEDIR "C:/Program Files/boost/include/boost-1_69")
+
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 set (PROJECT_LIBRARY_DIRECTORIES
         ${PROJECT_LIBRARY_DIRECTORIES}
-        ${Boost_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/tasksCode
+        "C:/Program Files/boost/include/boost-1_69"
         )
 
 set (PROJECT_CODE
@@ -20,5 +25,7 @@ set (PROJECT_CODE
 include_directories(${PROJECT_LIBRARY_DIRECTORIES})
 add_executable(SoftServeITATasks ${PROJECT_CODE})
 
-target_link_libraries(SoftServeITATasks -static)
-target_link_libraries(SoftServeITATasks ${Boost_LIBRARIES})
+#target_link_libraries(SoftServeITATasks ${Boost_LIBRARIES})
+#link_directories(SoftServeITATasks "C:/Program Files/boost/lib")
+#target_link_libraries(SoftServeITATasks -static)
+target_link_libraries(SoftServeITATasks Boost::filesystem)
