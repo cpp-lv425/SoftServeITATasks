@@ -35,13 +35,6 @@ AnyType::AnyType(char c_): holder(TypeNum::CHAR)
     holder.data.c = c_;
 }
 
-AnyType& AnyType::operator=(int i_)
-{
-    holder.typeNum = static_cast<int>(TypeNum::INT);
-    holder.data.i = i_;
-    return *this;
-}
-
 AnyType &AnyType::operator=(AnyType &&other)
 {
     if(this != &other)
@@ -52,37 +45,44 @@ AnyType &AnyType::operator=(AnyType &&other)
     return *this;
 }
 
+AnyType& AnyType::operator=(int i_)
+{
+    holder.typeNum = TypeNum::INT;
+    holder.data.i = i_;
+    return *this;
+}
+
 AnyType &AnyType::operator=(bool b_)
 {
-    holder.typeNum = static_cast<int>(TypeNum::BOOL);
+    holder.typeNum = TypeNum::BOOL;
     holder.data.b = b_;
     return *this;
 }
 
 AnyType &AnyType::operator=(double d_)
 {
-    holder.typeNum = static_cast<int>(TypeNum::DOUBLE);
+    holder.typeNum = TypeNum::DOUBLE;
     holder.data.d = d_;
     return *this;
 }
 
 AnyType &AnyType::operator=(float f_)
 {
-    holder.typeNum = static_cast<int>(TypeNum::FLOAT);
+    holder.typeNum = TypeNum::FLOAT;
     holder.data.f = f_;
     return *this;
 }
 
 AnyType &AnyType::operator=(char c_)
 {
-    holder.typeNum = static_cast<int>(TypeNum::CHAR);
+    holder.typeNum = TypeNum::CHAR;
     holder.data.c = c_;
     return *this;
 }
 
 int AnyType::toInt() const
 {
-    if(holder.typeNum != getTypeId(holder.data.i))
+    if(holder.typeNum != TypeNum::INT)
         throw AnyType::BadAnyCast();
 
     return holder.data.i;
@@ -90,7 +90,7 @@ int AnyType::toInt() const
 
 bool AnyType::toBool() const
 {
-    if(holder.typeNum != getTypeId(holder.data.b))
+    if(holder.typeNum != TypeNum::BOOL)
         throw AnyType::BadAnyCast();
 
     return holder.data.b;
@@ -98,7 +98,7 @@ bool AnyType::toBool() const
 
 float AnyType::toFloat() const
 {
-    if(holder.typeNum != getTypeId(holder.data.f))
+    if(holder.typeNum != TypeNum::FLOAT)
         throw AnyType::BadAnyCast();
 
     return holder.data.f;
@@ -106,7 +106,7 @@ float AnyType::toFloat() const
 
 double AnyType::toDouble() const
 {
-    if(holder.typeNum != getTypeId(holder.data.d))
+    if(holder.typeNum != TypeNum::DOUBLE)
         throw AnyType::BadAnyCast();
 
     return holder.data.d;
@@ -114,7 +114,7 @@ double AnyType::toDouble() const
 
 char AnyType::toChar() const
 {
-    if(holder.typeNum != getTypeId(holder.data.c))
+    if(holder.typeNum != TypeNum::CHAR)
         throw AnyType::BadAnyCast();
 
     return holder.data.c;
@@ -127,17 +127,15 @@ void AnyType::swap(AnyType &other)
 
 void AnyType::clear()
 {
-    holder.typeNum = static_cast<int>(TypeNum::UNKNOWN_TYPE);
+    holder.typeNum = TypeNum::UNKNOWN_TYPE;
 }
 
 TypeNum AnyType::type() const
 {
-    return static_cast<TypeNum>(holder.typeNum);
+    return holder.typeNum;
 }
 
 const char *AnyType::typeName() const
 {
-    return typeNames[holder.typeNum];
+    return typeNames[static_cast<int>(holder.typeNum)];
 }
-
-

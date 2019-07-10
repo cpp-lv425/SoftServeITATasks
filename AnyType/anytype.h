@@ -77,11 +77,11 @@ private:
     struct Holder
     {
         Holder(TypeNum typeNum_ = TypeNum::UNKNOWN_TYPE):
-            typeNum(static_cast<int>(typeNum_))
+            typeNum(typeNum_)
         {
         }
 
-        int typeNum;
+        TypeNum typeNum;
         union Data
         {
             int i;
