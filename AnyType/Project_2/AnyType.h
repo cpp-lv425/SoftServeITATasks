@@ -6,7 +6,21 @@ class AnyType
 private:
 	Types ValueType;//current type of the data
 	Data data;//current data 
+
 public:
+	class BadCastException : public std::exception
+	{
+		const char* mmsg;
+	public:
+		BadCastException(const char* msg = "Bad cast exeption. This oparation is forbidden") :
+			std::exception(), mmsg(msg)
+		{
+		}
+		virtual const char* what() const noexcept override
+		{
+			return mmsg;
+		}
+	};
 	AnyType();
 
 	~AnyType();
@@ -44,7 +58,7 @@ public:
 
 	AnyType(const AnyType &obj);
 
-	AnyType(const AnyType &&obj);
+	AnyType(AnyType &&obj);
 
 	int ToInt();
 
@@ -58,7 +72,7 @@ public:
 
 	void operator=(AnyType const & obj);
 
-	void operator=(AnyType const &&obj);
+	void operator=(AnyType &&obj);
 
 	void operator=(bool var);
 
@@ -73,7 +87,7 @@ public:
 	template<typename T>
 	operator T()const// if we wanna use explicit cast operator () for unknown type
 	{
-		throw std::bad_cast{};
+		throw AnyType::BadCastException();
 	}
 
 	operator int()const;

@@ -7,28 +7,19 @@ int main()
 {
 	AnyType anyType = false;
 	std::cout << anyType;
-	anyType = 12.6;
+	anyType = 12.6323223;
 	std::cout << anyType << std::endl;
-	try
-	{
-		int storedValue = anyType.ToInt();
-	}
-	catch (std::bad_cast& bc)
-	{
-		std::cout << "Forbidden"<<std::endl;
-		//Bad cast exception
-	}
-
 	anyType = 21.3232;
 	try
 	{
 		double *ptr_test = (double*)anyType;
 	}
-	catch (std::bad_cast& bc)
+	catch (const AnyType::BadCastException &ex)
 	{
-		std::cout << "Forbidden"<<std::endl;
+		std::cerr << ex.what() << std::endl;
 	}
-	std::cout << anyType;
+	double val = anyType.ToDouble();
+	std::cout << val << std::endl;
 	std::cin.get();
 	return 0;
 }

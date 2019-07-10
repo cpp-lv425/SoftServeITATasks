@@ -2,6 +2,8 @@
 #include"AnyType.h"
 #include<iostream>
 
+
+
 AnyType::AnyType()// empty constructor
 {
 	ValueType = Types::UNKNOWN_TYPE;
@@ -15,7 +17,7 @@ AnyType::AnyType(const AnyType &obj)//copy constructor
 	ValueType = obj.ValueType;
 }
 
-AnyType::AnyType(const AnyType &&obj)//move constructor
+AnyType::AnyType(AnyType &&obj)//move constructor
 {
 	data = obj.data;
 	ValueType = obj.ValueType;
@@ -24,48 +26,54 @@ AnyType::AnyType(const AnyType &&obj)//move constructor
 char AnyType::ToChar()
 {
 	if (ValueType != Types::CHAR)// check if current value type != char
-		throw std::bad_cast{};//if it's not char throw bad cast exception
-	return static_cast<char>(data.charData);//if it's char return char value
+		throw AnyType::BadCastException();//if it's not char throw bad cast exception
+	return data.charData;//if it's char - return char value
 }
 
-int AnyType::ToInt() 
+int AnyType::ToInt()
 {
 	if (ValueType != Types::INT)
-		throw std::bad_cast{};
-	return static_cast<int>(data.charData);
+		throw AnyType::BadCastException();
+	return data.intData;
 }
 
-double AnyType::ToDouble() 
+double AnyType::ToDouble()
 {
 	if (ValueType != Types::DOUBLE)
-		throw std::bad_cast{};
-	return static_cast<double>(data.charData);
+		throw AnyType::BadCastException();
+	return data.doubleData;
 }
 
-bool AnyType::ToBool() 
+bool AnyType::ToBool()
 {
 	if (ValueType != Types::BOOL)
-		throw std::bad_cast{};
-	return static_cast<bool>(data.charData);
+		throw AnyType::BadCastException();
+	return data.boolData;
 }
 
-float AnyType::ToFloat() 
+float AnyType::ToFloat()
 {
 	if (ValueType != Types::FLOAT)
-		throw std::bad_cast{};
-	return static_cast<float>(data.charData);
+		throw AnyType::BadCastException();
+	return (data.floatData);
 }
 
 void AnyType::operator=(AnyType const & obj)//copy assigment
 {
-	data = obj.data;
-	ValueType = obj.ValueType;
+	if (this != &obj)
+	{
+		data = obj.data;
+		ValueType = obj.ValueType;
+	}
 }
 
-void AnyType::operator=(AnyType const &&obj)//move assigment
+void AnyType::operator=(AnyType &&obj)//move assigment
 {
-	data = obj.data;
-	ValueType = obj.ValueType;
+	if (this != &obj)
+	{
+		data = obj.data;
+		ValueType = obj.ValueType;
+	}
 }
 
 void AnyType::operator=(bool var)//overloaded operator =(we get the data type(in this case bool) and fill field of this type in the union)
@@ -93,9 +101,9 @@ void AnyType::operator=(double var)
 	ValueType = Types::DOUBLE;
 }
 
-std::ostream& operator<<(std::ostream &out, const AnyType &anyType)//overloaded << for printf // get data and type mhetod
+std::ostream& operator<<(std::ostream &out, const AnyType &anyType)//overloaded << for print // get data and type mhetod
 {
-	// after fuguring out what data type is we print equal value from inion
+	// after figuring out what data type is we print equal value from inion
 	std::cout << "Data = ";
 	switch (anyType.ValueType)
 	{
@@ -106,42 +114,42 @@ std::ostream& operator<<(std::ostream &out, const AnyType &anyType)//overloaded 
 	case Types::CHAR:   out << anyType.data.charData << ". Type = char" << std::endl;	    break;
 	default: out << "Type is undefined" << std::endl;// if unknown type
 	}
-	return out;
+	return out;// return output stream
 }
 
 AnyType::operator int()const// overloaded ()operator
 {
 	if (ValueType != Types::INT)// if our type != int
-		throw std::bad_cast{};// this operation can be unsafe. throw bad_cast.
-	return static_cast<int>(data.intData);// if anything is ok return value of our cast
+		throw AnyType::BadCastException();// this operation can be unsafe. throw bad_cast.
+	return data.intData;// if anything is ok return value of our cast
 }
 //we'll do the same below for all types
 AnyType::operator double()const
 {
 	if (ValueType != Types::DOUBLE)
-		throw std::bad_cast{};
-	return static_cast<double>(data.doubleData);
+		throw AnyType::BadCastException();
+	return data.doubleData;
 }
 
 AnyType::operator char()const
 {
 	if (ValueType != Types::CHAR)
-		throw std::bad_cast{};
-	return static_cast<char>(data.charData);
+		throw AnyType::BadCastException();
+	return data.charData;
 }
 
 AnyType::operator float()const
 {
 	if (ValueType != Types::FLOAT)
-		throw std::bad_cast{};
-	return static_cast<float>(data.floatData);
+		throw AnyType::BadCastException();
+	return data.floatData;
 }
 
 AnyType::operator bool()const
 {
 	if (ValueType != Types::BOOL)
-		throw std::bad_cast{};
-	return static_cast<float>(data.boolData);
+		throw AnyType::BadCastException();
+	return data.boolData;
 }
 
 void swap(AnyType &obj1, AnyType &obj2)// swap function
