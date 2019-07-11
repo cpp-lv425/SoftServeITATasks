@@ -96,7 +96,8 @@ int main (int argc, char ** argv){
 }
 
 void StringListInit(char*** list){
-	* list = (char**)malloc (2 * sizeof(char**));
+	if ( !(* list = (char**)malloc (2 * sizeof(char**))) )
+		return;
 	** list = 0;					
 	*(++(* list)) = 0;				
 }
@@ -115,7 +116,8 @@ void StringListDestroy(char*** list) {/* Destroy list and set pointer to NULL. *
 
 void StringListAdd(char** list, char * str) {/* Inserts value at the end of the list. */
 	char ** item;
-	item = (char**)malloc (2 * sizeof(char**));
+	if ( !(item = (char**)malloc (2 * sizeof(char**))) )
+		return;
 	* item = str;					
 
 	if (*list == 0) {				//	first adding
