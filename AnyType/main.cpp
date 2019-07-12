@@ -1,5 +1,6 @@
-#include <iostream>
 #include <anytype.h>
+
+#include <iostream>
 
 using std::cout;
 using std::cerr;

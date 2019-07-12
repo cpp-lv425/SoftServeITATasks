@@ -1,8 +1,8 @@
 #ifndef ANYTYPE_H
 #define ANYTYPE_H
-#include <exception>
 #include "typeid.h"
-#include <vector>
+
+#include <exception>
 
 class AnyType
 {
