@@ -161,3 +161,6 @@ $RECYCLE.BIN/
 
 # idea development environment specific folder
 .idea/
+
+# exclude test cases from repository
+testCases.cpp

@@ -62,7 +62,7 @@ public:
 	
     // Overloaded parametrized universal constructor
     template <typename Type>
-    AnyType(Type && value) : AnyType() {
+    AnyType(Type && value) {
         SetValueData(value);
         SetValueType(value);
     };
