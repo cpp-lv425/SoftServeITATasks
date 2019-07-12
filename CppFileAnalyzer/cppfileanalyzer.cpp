@@ -128,9 +128,11 @@ void CppFileAnalyzer::processFile()
 			<< std::this_thread::get_id()
 			<< '\n';
 #endif // DEBUG
-
-		file = files.front();
-		files.pop_front();
+		if (!files.empty())
+		{
+			file = files.front();
+			files.pop_front();
+		}		
 	}	
 
 	std::ifstream fin;
