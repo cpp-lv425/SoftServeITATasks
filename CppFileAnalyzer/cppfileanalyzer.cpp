@@ -10,7 +10,7 @@
 using std::cout;
 using std::cin;
 
-CppFileAnalyzer::CppFileAnalyzer()	
+CppFileAnalyzer::CppFileAnalyzer()
 {
 }
 
@@ -18,11 +18,11 @@ void CppFileAnalyzer::promptPath()
 {
 	std::string input;
 	while (true)
-	{	
+	{
 		input = promptString();
 
 		initDirectory = (input.size()) ? input :
-			fs::current_path();				
+			fs::current_path();
 
 		// converts directory separators in path to satify
 		// requirement of current OS
@@ -56,8 +56,8 @@ void CppFileAnalyzer::browseForFiles()
 	startTime = ch::high_resolution_clock::now();
 
 	fs::recursive_directory_iterator begin(initDirectory);
-	fs::recursive_directory_iterator end;	
-	
+	fs::recursive_directory_iterator end;
+
 	// enlists *.c *.h *.hpp *.cpp files
 	std::copy_if(begin, end, std::back_inserter(files),
 		[](const fs::path& path)
@@ -69,12 +69,12 @@ void CppFileAnalyzer::browseForFiles()
 					(path.extension() == ".h") ||
 					(path.extension() == ".hpp")
 					);
-		});	
-	
+		});
+
 	std::cout << "\nList of found files: " << std::endl;
 	std::copy(files.begin(), files.end(),
 		std::ostream_iterator<fs::path>(std::cout, "\n"));
-	std::cout << '\n';	
+	std::cout << '\n';
 }
 
 void CppFileAnalyzer::start()
@@ -103,18 +103,18 @@ void CppFileAnalyzer::allocateWork()
 		supportedThreads, maxThreads);
 
 	int step = files.size() / numOfThreads;
-	step = !step ? 1 : step;	
+	step = !step ? 1 : step;
 
 	// creating pool of threads
 	ThreadPool pool(numOfThreads);
 
 	// adding tasks
 	for (int i = 0; i < files.size(); i++)
-	{		
+	{
 		auto f = std::mem_fn(&CppFileAnalyzer::processFile);
 		auto fb = std::bind(f, this);
-		pool.schedule(fb);		
-	}	
+		pool.schedule(fb);
+	}
 }
 
 void CppFileAnalyzer::processFile()
@@ -122,7 +122,7 @@ void CppFileAnalyzer::processFile()
 	fs::path file;
 	{
 		std::unique_lock<std::mutex> ul(mtx);
- 
+
 #ifdef DEBUG
 		cout << "Current thread ID: "
 			<< std::this_thread::get_id()
@@ -132,8 +132,10 @@ void CppFileAnalyzer::processFile()
 		{
 			file = files.front();
 			files.pop_front();
-		}		
-	}	
+		}
+		else
+			return;
+	}
 
 	std::ifstream fin;
 
@@ -163,68 +165,61 @@ void CppFileAnalyzer::processFile()
 	fin.close();
 	++filesNum;
 
-	textAnalyzer(text);	
+	textAnalyzer(text);
 }
 
 void CppFileAnalyzer::textAnalyzer
 (std::vector<std::pair<TextType, std::string>>& text)
 {
-	try
+	for (int i = 0; i < text.size(); ++i)
 	{
-		for (int i = 0; i < text.size(); ++i)
+		// blank line
+		if (!text[i].second.size())
 		{
-			// blank line
-			if (!text[i].second.size())
-			{
-				text[i].first = TextType::BlankLine;
-				continue;
-			}
-			// CppStyleComment
-			if (text[i].second.at(0) == '/' && text[i].second.at(1) == '/')
-			{
-				text[i].first = TextType::CppStyleComment;
-				continue;
-			}
-			// CStyleComment
-			if (text[i].second.at(0) == '/' && text[i].second.at(1) == '*')
-			{
-				processCStyleComment(text, i);
-				continue;
-			}
+			text[i].first = TextType::BlankLine;
+			continue;
+		}
+		// CppStyleComment
+		if (text[i].second.at(0) == '/' && text[i].second.at(1) == '/')
+		{
+			text[i].first = TextType::CppStyleComment;
+			continue;
+		}
+		// CStyleComment
+		if (text[i].second.at(0) == '/' && text[i].second.at(1) == '*')
+		{
+			processCStyleComment(text, i);
+			continue;
+		}
 
-			// "
-			if (text[i].second.at(0) == '\"')
-			{
-				processQuotes(text, i);
-				continue;
-			}
+		// "
+		if (text[i].second.at(0) == '\"')
+		{
+			processQuotes(text, i);
+			continue;
+		}
 
-			// code
-			text[i].first = TextType::Code;
+		// code
+		text[i].first = TextType::Code;
 
-			// comment after code
-			int pos = text[i].second.find('/');
+		// comment after code
+		int pos = text[i].second.find('/');
 
-			if (pos == std::string::npos)
-				continue;
+		if (pos == std::string::npos)
+			continue;
 
-			if (text[i].second[pos + 1] == '/')
-			{
-				text[i].first = TextType::CodeAndComment;
-				continue;
-			}
+		if (text[i].second[pos + 1] == '/')
+		{
+			text[i].first = TextType::CodeAndComment;
+			continue;
+		}
 
-			if (text[i].second[pos + 1] == '*')
-			{
-				text[i].first = TextType::CodeAndComment;
-				processCStyleComment(text, i, pos);
-			}
+		if (text[i].second[pos + 1] == '*')
+		{
+			text[i].first = TextType::CodeAndComment;
+			processCStyleComment(text, i, pos);
 		}
 	}
-	catch (const std::exception& e)
-	{
-		std::cout << e.what() << '\n';
-	}	
 
 	// summing up results
 	for (auto& item : text)
@@ -285,6 +280,7 @@ void CppFileAnalyzer::processCStyleComment
 
 		if (text[i].second[pos + 1] == '/')
 		{
+			// check if there is code after comments
 			pos = text[i].second.find_first_not_of(" \t", pos + 2);
 
 			if (pos == std::string::npos)
@@ -297,8 +293,8 @@ void CppFileAnalyzer::processCStyleComment
 	}
 }
 
-void CppFileAnalyzer::processQuotes(std::vector<std::pair
-	<TextType, std::string>>&text, int& i)
+void CppFileAnalyzer::processQuotes
+(std::vector<std::pair<TextType, std::string>>&text, int& i)
 {
 	if (text[i].first == TextType::Unknown)
 		text[i].first = TextType::Code;
@@ -312,6 +308,8 @@ void CppFileAnalyzer::processQuotes(std::vector<std::pair
 		if (pos == std::string::npos)
 			return;
 
+		// check if there are comments after closing
+		// quotation marks
 		pos = text[i].second.find('/', pos + 1);
 
 		if (pos == std::string::npos)
