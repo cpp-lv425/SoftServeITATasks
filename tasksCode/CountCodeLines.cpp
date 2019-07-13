@@ -30,61 +30,138 @@ class ConcurrentLineCounter {
     static CounterType CountAndRemoveComments(std::string & fileContents)
     {
         CounterType localCommentLinesCount = 0;
+
+        fileContents = std::regex_replace(fileContents, std::regex(R"row(\*/[ \t]*/\*)row"), "/*");
+
         // Count multiline comment instances
-        std::regex multilineCommentRegex(R"row(/\*[^*]*\*+(?:[^/*][^*]*\*+)*/)row");
+        std::regex multilineCommentRegex(R"row((.*)(/\*[^*]*\*+(?:[^/*][^*]*\*+)*/)(.*))row");
         std::sregex_iterator commentPtr(fileContents.cbegin(), fileContents.cend(), multilineCommentRegex);
         std::sregex_iterator end;
         for (; commentPtr != end; ++commentPtr) {
-            if (!std::regex_match(std::string(commentPtr->prefix()), std::regex(R"row((.|\n)*//[^\n]*)row"))) {
-                bool isPrecommented = false;
-                if (!std::regex_match(std::string(commentPtr->prefix()), std::regex(R"row((?:.|\n)*/\*\*/[^\n]*$)row"))) {
-                    isPrecommented = true;
+            std::string commentPrefix = commentPtr->str(1);
+            std::string commentBody   = commentPtr->str(2);
+            std::string commentSuffix = commentPtr->str(3);
+
+            std::cout << "\nCOMMENT:\n=================\n" <<
+                         commentBody << "\n=================" <<
+                         "\nPREFIX:\t" << commentPrefix <<
+                         "\nSUFFIX:\t" << commentSuffix << "\n";
+
+
+            if (std::regex_match(commentPrefix, std::regex(R"row(^.*//.*$)row")) ||
+                std::regex_match(commentPrefix, std::regex(R"row(^.*/\*\*/.*$)row"))) {
+                std::cout << "comment is shadowed by other comment" << std::endl;
+                continue;
+            }
+
+            CounterType lines = 0;
+            std::stringstream commentStream(commentBody);
+            std::string commentLine;
+            while (std::getline(commentStream, commentLine)) {
+                ++lines;
+                ++localCommentLinesCount;
+            }
+
+            auto commentPos = fileContents.find(commentBody);
+
+            if (lines > 1 && !std::regex_match(commentSuffix, std::regex(R"row(^[ \t]*$)row"))) {
+                std::cout << "multiline comment has text after it" << std::endl;
+                fileContents.replace(commentPos, commentBody.length(), "/**/\n");
+            } else {
+                std::cout << "one-line comment or multiline without text after it" << std::endl;
+                fileContents.replace(commentPos, commentBody.length(), "/**/");
+            }
+
+            commentPtr = std::sregex_iterator(fileContents.cbegin() + commentPos, fileContents.cend(),
+                                              multilineCommentRegex);
+
+            continue;
+            if (!std::regex_match(std::string(commentPtr->prefix()), std::regex(R"row([\^]?(.|\n)*//[^\n]*[\$]?)row"))) {
+                if (!std::regex_match(std::string(commentPtr->prefix()), std::regex(R"row(^(.|\n)*/\*\*/[^\n]*$)row"))) {
+                    std::cout << "captured comment, first in the line" << std::endl;
+                    std::cout << "comment: " << commentPtr->str() << std::endl;
+
+                    CounterType commentLines = localCommentLinesCount;
                     std::stringstream commentStream(commentPtr->str());
                     std::string commentLine;
                     while (std::getline(commentStream, commentLine))
                         ++localCommentLinesCount;
+
+                    commentLines = localCommentLinesCount - commentLines;
+                    std::cout << "lines: " << commentLines << std::endl;
+
+
+
+                    auto commentPos = fileContents.find(commentPtr->str());
+
+
+                    if (commentLines > 1 && !std::regex_match(std::string(commentPtr->suffix()),
+                                                              std::regex(R"row(^(?:[ \t][^\n])*\n(?:.|\n)*$)row"))) {
+                        std::cout << "multiline comment has text after it" << std::endl;
+                        fileContents.replace(commentPos, commentPtr->length(), "/**/\n");
+                    } else {
+                        std::cout << "one-line comment or multiline without text after it" << std::endl;
+                        fileContents.replace(commentPos, commentPtr->length(), "/**/");
+                    }
+                    //if (!std::regex_match(std::string(commentPtr->prefix()), std::regex(R"row(^(?:.|\n)*\n[ \t]*$)row"))) {
+                    //fileContents.insert(commentPos, "\n", 1);
+                    //}
+
+                    commentPtr = std::sregex_iterator(fileContents.cbegin() + commentPos, fileContents.cend(),
+                                                      multilineCommentRegex);
+
+
                 }
-                // Remove the multiline comment with the empty multiline comment:
-                // /*comment*/  ->  /**/
-                auto commentPos = fileContents.find(commentPtr->str());
-                fileContents.replace(commentPos, commentPtr->length(), "/**/");
-                if (isPrecommented) {
-                    if (!std::regex_match(std::string(commentPtr->prefix()), std::regex(R"row((?:.|\n)*\n\s*$)row")))
-                        fileContents.insert(commentPos + 4, "\n", 1);
-                    if (!std::regex_match(std::string(commentPtr->suffix()), std::regex(R"row(^\s*\n(?:.|\n)*)row")))
-                        fileContents.insert(commentPos, "\n", 1);
+                else {
+                    std::cout << "captured comment, shadowed by other comment" << std::endl;
+                    std::cout << "comment: " << commentPtr->str() << std::endl;
                 }
-                commentPtr = std::sregex_iterator(fileContents.cbegin() + commentPos, fileContents.cend(), multilineCommentRegex);
+            }
+            else {
+                std::cout << "captured comment, shadowed by other //" << std::endl;
+                std::cout << "comment: " << commentPtr->str() << std::endl;
+            }
+        }
+        //fileContents = std::regex_replace(fileContents, std::regex(R"row(^/\*\*/[ \t]*\n)row"), "");
+        //if (std::strcmp(fileContents.c_str(), "/**/\n"))
+        //    fileContents.erase(0, 6);
+        //fileContents = std::regex_replace(fileContents, std::regex(R"row((?:\n[ \t]*/\*\*/[ \t]*)|(?:[ \t]*/\*\*/[ \t]*\n)|(?:[ \t]*/\*\*/[ \t]*))row"), "");
+
+        std::cout << "================================================================================\n" << fileContents << "\n================================================================================" << std::endl;
+        std::stringstream contentStream(fileContents);
+        std::string contentLine;
+        while (std::getline(contentStream, contentLine)) {
+            std::smatch matchedComment;
+            if(std::regex_search(contentLine.cbegin(), contentLine.cend(), matchedComment, std::regex(R"__(/\*\*/)__"))) {
+                if (std::regex_match(std::string(matchedComment.prefix()), std::regex(R"__(^\s*$)__")))
+                    fileContents.erase(fileContents.find(contentLine + "\n"), contentLine.length() + 1);
+                else
+                    fileContents.erase(fileContents.find(matchedComment.str()), matchedComment.length());
             }
         }
         std::cout << "================================================================================\n" << fileContents << "\n================================================================================" << std::endl;
-        //fileContents = std::regex_replace(fileContents, std::regex(R"row(^/\*\*/[ \t]*\n)row"), "");
-        if (std::strcmp(fileContents.c_str(), "/**/\n"))
-            fileContents.erase(0, 6);
-        //fileContents = std::regex_replace(fileContents, std::regex(R"row((?:\n[ \t]*/\*\*/[ \t]*)|(?:[ \t]*/\*\*/[ \t]*\n)|(?:[ \t]*/\*\*/[ \t]*))row"), "");
-        fileContents = std::regex_replace(fileContents, std::regex(R"row([ \t]*/\*\*/[ \t]*\n)row"), "");
-        return localCommentLinesCount + CountAndRemovePlainComments(fileContents);
+
+        //fileContents = std::regex_replace(fileContents, std::regex(R"row(\n[ \t]*/\*\*/[ \t]*\n)row"), "");
+        return localCommentLinesCount + CountAndRemoveLinearComments(fileContents);
     }
 
-    static CounterType CountAndRemovePlainComments(std::string & fileContents)
+    static CounterType CountAndRemoveLinearComments(std::string & fileContents)
     {
-        if (fileContents[fileContents.length()-1] != '\n')
-            fileContents.push_back('\n');
+        fileContents.push_back('\n');
         CounterType localCommentLinesCount = 0;
         std::stringstream contentStream(fileContents);
         std::string contentLine;
         while (std::getline(contentStream, contentLine)) {
-            std::regex plainCommentRegex(R"row(//[^\n]*$)row");
-            std::smatch m;
-            if(std::regex_search(contentLine.cbegin(), contentLine.cend(), m, plainCommentRegex)) {
-                std::string pref = m.prefix();
-                if (std::regex_match(pref, std::regex(R"row(^\s*$)row")))
-                    fileContents.erase(fileContents.find(contentLine), contentLine.length()+1);
+            std::smatch matchedComment;
+            if(std::regex_search(contentLine.cbegin(), contentLine.cend(), matchedComment, std::regex(R"__(//[^\n]*)__"))) {
+                if (std::regex_match(std::string(matchedComment.prefix()), std::regex(R"__(^\s*$)__")))
+                    fileContents.erase(fileContents.find(contentLine + "\n"), contentLine.length() + 1);
                 else
-                    fileContents.erase(fileContents.find(m.str()), m.length());
+                    fileContents.erase(fileContents.find(matchedComment.str()), matchedComment.length());
                 ++localCommentLinesCount;
             }
         }
+        fileContents.erase(fileContents.length()-1, 1);
         return localCommentLinesCount;
     }
 
@@ -118,7 +195,7 @@ class ConcurrentLineCounter {
         auto localCommentLinesCount      = CountAndRemoveComments (fileContents);
         auto localCodeAndBlankLinesCount = CountCodeAndBlankLines (fileContents);
 
-        std::cout << "================================================================================\n" << fileContents << "\n================================================================================" << std::endl;
+        //std::cout << "================================================================================\n" << fileContents << "\n================================================================================" << std::endl;
         std::cout << "commentLines: " << localCommentLinesCount << std::endl;
         std::cout << "code lines: " << localCodeAndBlankLinesCount.first << std::endl;
         std::cout << "blank lines: " << localCodeAndBlankLinesCount.second << std::endl;
@@ -212,7 +289,7 @@ void ConcurrentCodeLinesCount()
     std::string dirPath;
     std::string outFileName;
 
-    concurrentlyCountLines("C:\\Users\\faitc\\OneDrive - lpnu.ua\\Cplusplus STUFF\\SoftServeITATasks\\tasksCode\\testCases.cpp");
+    concurrentlyCountLines("C:\\Users\\faitc\\OneDrive - lpnu.ua\\Cplusplus STUFF\\SoftServeITATasks\\tasksCode\\StringList.cpp");
 
     /*
 
