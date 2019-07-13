@@ -23,8 +23,8 @@ void StringListDestroy(char*** list)
         return;
 
     char*** current = reinterpret_cast<char***>(*list);
-     ++current = reinterpret_cast<char***>(*current);
-    char*** del = list;
+    ++current = reinterpret_cast<char***>(*current);
+    char** del = *list;
 
     // deleting dummy node
     free(del);
@@ -32,8 +32,9 @@ void StringListDestroy(char*** list)
     if (!current)
         return;
 
-    del = current;
+    del = reinterpret_cast<char**>(current);
 
+    // deleting nodes with data
     while (true)
     {
         // moving to next node
@@ -47,7 +48,7 @@ void StringListDestroy(char*** list)
         if (!current)
             break;
 
-        del = current;
+        del = reinterpret_cast<char**>(current);
     }
     list = nullptr;
 }
@@ -64,7 +65,7 @@ void StringListAdd(char** list, String str)
         {
             if(str)
                 free(str);
-            return;
+            throw "Failed to allocate memory\n";
         }
 
         char** cur = reinterpret_cast<char**>(list[1]);
@@ -82,7 +83,7 @@ void StringListAdd(char** list, String str)
     {
         if (str)
             free(str);
-        return;
+        throw "Failed to allocate memory\n";
     }
 
     ++end = reinterpret_cast<char***>(*end);
@@ -94,11 +95,11 @@ void StringListAdd(char** list, String str)
 
 void StringListRemove(char** list, String str)
 {
-    if (!list)
+    if (!list[1])
     {
         if(str)
             free(str);
-        return;
+        throw "The list is empty\n";
     }
 
     char*** cur = reinterpret_cast<char***>(list[1]);
@@ -153,14 +154,13 @@ int StringListSize(char** list)
 }
 
 int StringListIndexOf(char** list, char* str)
-{
-    // !!! if list is empty or str doesn't match any of
-    // items function returns -1;
-    if (!list[0])
+{    
+
+    if (!list[1])
     {
         if(str)
             free(str);
-        return -1;
+        throw "The list is empty\n";
     }
 
     int idx = 0;
@@ -180,13 +180,15 @@ int StringListIndexOf(char** list, char* str)
     }
     if(str)
         free(str);
+
+    // if string is not found in the list -1 is returned
     return -1;
 }
 
 void StringListRemoveDuplicates(char** list)
 {
     if (!list[0])
-        return;
+        throw "The list is empty\n";
 
     char*** unique = reinterpret_cast<char***>(list[1]);
     char*** current = reinterpret_cast<char***>(list[1]);
@@ -239,14 +241,24 @@ void StringListRemoveDuplicates(char** list)
 void StringListReplaceInStrings(char** list,
                                 char* before, char* after)
 {
-    // returns if list is empty or passed strings (before, after) are null
-    if (!list[0] || !before || !after)
+    // throws exception if list is empty
+    if(!list[0])
     {
         if(before)
             free(before);
         if(after)
             free(after);
-        return;
+        throw "The list is empty\n";
+    }
+
+    // throws exception if any of passed strings is null
+    if (!before || !after)
+    {
+        if(before)
+            free(before);
+        if(after)
+            free(after);
+        throw "Untenable arguments\n";
     }
 
     char*** cur = reinterpret_cast<char***>(list[1]);
@@ -262,6 +274,14 @@ void StringListReplaceInStrings(char** list,
                     strlen(after) + 1;
             char* newStr = static_cast<char*>
                     (malloc(sizeof(char) * size));
+
+            if(!newStr)
+            {
+                free(before);
+                free(after);
+                throw "Failed to construct string\n";
+            }
+
             char* curCharStr = reinterpret_cast<char*>(cur[0]);
             char* curCharNew = newStr;
             char* curCharAfter = after;
@@ -286,15 +306,21 @@ void StringListReplaceInStrings(char** list,
             cur[0] = static_cast<char**>
                     (realloc(cur[0], sizeof(char) * size));
 
+            if(!cur[0])
+            {
+                free(before);
+                free(after);
+                throw "Failed to construct string\n";
+            }
+
             strcpy(reinterpret_cast<char*>(cur[0]), newStr);
             free(newStr);
         }
         ++cur = reinterpret_cast<char***>(*cur);
     }
-    if(before)
-        free(before);
-    if(after)
-        free(after);
+
+    free(before);
+    free(after);
 }
 
 void StringListSort(char**& list)

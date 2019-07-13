@@ -62,7 +62,7 @@ int PromptIntInRange(int start, int end)
 
 int MainMenu()
 {
-    std::cout << "\n1. Add string to the list.\n"
+    cout << "\n1. Add string to the list.\n"
               << "2. Removes all occurrences of string in the list.\n"
               << "3. Print the number of items in the list.\n"
               << "4. Returns the index position of the first occurrence of string in the list.\n"
@@ -79,9 +79,30 @@ char* InputString()
 {
     char* buf = static_cast<char*>(malloc(sizeof(char) * 100));
 
+    if(!buf)
+    {
+        cout << "Failed to allocate memory.\n";
+        return  nullptr;
+    }
+
     cin.getline(buf, 100);
     size_t size = strlen(buf) + 1;
+
+    if(size <= 1)
+    {        
+        cout << "Empty line has been entered.\n";
+        free(buf);
+        return  nullptr;
+    }
     char* input = static_cast<char*>(malloc(sizeof(char) * size));
+
+    if(!input)
+    {
+        cout << "Failed to allocate memory.\n";
+        free(buf);
+        return  nullptr;
+    }
+
     strcpy(input, buf);
     free(buf);
     return input;

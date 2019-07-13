@@ -12,6 +12,7 @@ using std::cout;
 int main()
 {
     char** StringList = nullptr;
+
     StringListInit(&StringList);
 
     while (true)
@@ -31,16 +32,38 @@ int main()
         {
             cout << "Enter new string: ";
             char* newStr = InputString();
-            StringListAdd(StringList, newStr);
-            TraverseList(StringList);
+
+            if(!newStr)
+                break;
+
+            try
+            {
+                StringListAdd(StringList, newStr);
+                TraverseList(StringList);
+            } catch (const char* e)
+            {
+                cout << e << '\n';
+            }
+
             break;
         }
         case 2:
         {
             cout << "Enter a string occurrences of which must be removed from the list: ";
             char* str = InputString();
-            StringListRemove(StringList, str);
-            TraverseList(StringList);
+
+            if(!str)
+                break;
+
+            try
+            {
+                StringListRemove(StringList, str);
+                TraverseList(StringList);
+            } catch (const char* e)
+            {
+                cout << e << '\n';
+            }
+
             break;
         }
         case 3:
@@ -54,29 +77,66 @@ int main()
         {
             cout << "Enter a string to find out its index in the list: ";
             char* str = InputString();
-            int idx = StringListIndexOf(StringList, str);
-            if(idx == -1)
-                cout << "There is no such string in the list.\n";
-            else
-                cout << "Index of the string: " << idx << '\n';
+
+            if(!str)
+                break;
+
+            try
+            {
+                int idx = StringListIndexOf(StringList, str);
+
+                if(idx == -1)
+                    cout << "There is no such string in the list.\n";
+                else
+                    cout << "Index of the string: " << idx << '\n';
+
+            } catch (const char* e)
+            {
+                cout << e << '\n';
+            }
 
             break;
         }
         case 5:
         {
-            StringListRemoveDuplicates(StringList);
-            cout << "Duplicates removed.\n";
-            TraverseList(StringList);
+            try
+            {
+                StringListRemoveDuplicates(StringList);
+                cout << "Duplicates removed.\n";
+                TraverseList(StringList);
+            } catch (const char* e)
+            {
+                cout << e << '\n';
+            }
+
             break;
         }
         case 6:
         {
             cout << "Enter a sub-string which must be replaced in list: ";
             char* before = InputString();
+
+            if(!before)
+                break;
+
             cout << "Enter a sub-string which must be put instead of previous sub-string: ";
             char* after = InputString();
-            StringListReplaceInStrings(StringList, before, after);
-            TraverseList(StringList);
+
+            if(!after)
+            {
+                free(before);
+                break;
+            }
+
+            try
+            {
+                StringListReplaceInStrings(StringList, before, after);
+                TraverseList(StringList);
+            } catch (const char* e)
+            {
+                cout << e << '\n';
+            }
+
             break;
         }
         case 7:
