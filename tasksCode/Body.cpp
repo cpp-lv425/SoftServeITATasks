@@ -32,10 +32,6 @@ extern void ConcurrentCodeLinesCount();
 /*######################################################################################################*/
 #include <iostream>
 #include <windows.h>
-#include <fstream>
-#include <algorithm>
-#include <sstream>
-#include <regex>
 
 // If the condition is false, print "Assertion failed" and prompt to exit
 #define ERROR_TEXT_COLOR 12	// red color before the black background
