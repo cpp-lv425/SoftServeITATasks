@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
 	using std::cout;
 	using std::endl;
 
-    ConcurrentCodeLinesCount();
+
 
 	ASSERT (2 != 1)
     system("pause");
