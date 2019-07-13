@@ -29,22 +29,25 @@ private:
     // Constant variables with regex templates
     const static std::regex         blankStringRegex;
     const static std::regex         quotedStringRegex;
+    const static std::regex         rawStringRegex;
     const static std::regex         cTypeCommentRegex;
+    const static std::regex         cTypeCommentWithPrefixAndSuffixRegex;
+    const static std::regex         cTypeCommentInPrefixRegex;
+    const static std::regex         cTypeSequentialCommentsRegex;
     const static std::regex         linearCommentRegex;
-    const static std::regex         cTypeCommentPrefixRegex;
-    const static std::regex         linearCommentPrefixRegex;
-    const static std::regex         emptyCommentRegex;
-    const static std::string        emptyCommentString;
+    const static std::regex         linearCommentInPrefixRegex;
+    const static std::string        cTypeEmptyComment;
 
     static void CountLines(const std::string & fileName)
     {
-        // Convert file with a given filename into a fileContents string. Then replace quoted strings inside
-        // with underscores we don't need them and they can contain key symbol sequences:
+        // Convert file with a given filename into a fileContents string. Then replace quoted and raw strings
+        // inside with underscores since we don't need them and they can contain key symbol sequences:
         // "string"  ->  _
         std::ifstream file(fileName, std::ios::binary);
         std::stringstream fileStream;
         fileStream << file.rdbuf();
         std::string fileContents(fileStream.str());
+        fileContents = std::regex_replace(fileContents, rawStringRegex, "_");
         fileContents = std::regex_replace(fileContents, quotedStringRegex, "_");
         // Count comment lines and blank along with code lines in the file content
         auto localCommentLinesCount      = CountAndRemoveComments (fileContents);
@@ -60,21 +63,28 @@ private:
 
     static CounterType CountAndRemoveComments(std::string & fileContents)
     {
-        // Shrink sequential comments:    /*comment1*/   /*comment2*/ -> /*comment1/*comment2*/
-        fileContents = std::regex_replace(fileContents, std::regex(R"__(\*/[ \t]*/\*)__"), "/*");
+        // Shrink sequential comments:    /*comment1*/   /*comment2*/ -> /*comment1comment2*/
+        fileContents = std::regex_replace(fileContents, cTypeSequentialCommentsRegex, "");
         CounterType localCommentLinesCount = 0;
         // Iterate through every c-type comment instance in the file
-        std::sregex_iterator commentPtr(fileContents.cbegin(), fileContents.cend(), cTypeCommentRegex);
+        std::sregex_iterator commentPtr(fileContents.cbegin(), fileContents.cend(),
+                                        cTypeCommentWithPrefixAndSuffixRegex);
         std::sregex_iterator endOfComments;
-        for (; commentPtr != endOfComments; ++commentPtr) {
+        for (; commentPtr != endOfComments; ) {
             // Get information about captured comment
             std::string commentPrefix = commentPtr->str(1);
             std::string commentBody   = commentPtr->str(2);
             std::string commentSuffix = commentPtr->str(3);
             std::size_t commentPos = fileContents.find(commentBody);
-            // Ignore comment if it was shadowed by other comment (one-line or c-type)
-            if (std::regex_match(commentPrefix, cTypeCommentPrefixRegex) ||
-                std::regex_match(commentPrefix, linearCommentPrefixRegex)) continue;
+            // Ignore comment if it was shadowed by other comment (one-line or c-type),
+            // then step after /* and update search results
+            if (std::regex_match(commentPrefix, cTypeCommentInPrefixRegex) ||
+                std::regex_match(commentPrefix, linearCommentInPrefixRegex)) {
+                fileContents.erase(commentPos, 2);
+                commentPtr = std::sregex_iterator(fileContents.cbegin() + commentPos - commentPrefix.length(), fileContents.cend(),
+                                                  cTypeCommentWithPrefixAndSuffixRegex);
+                continue;
+            }
             // Count lines inside this comment and add their quantity to the local counter
             std::stringstream commentStream(commentBody);
             std::string commentLine;
@@ -82,17 +92,21 @@ private:
             while (std::getline(commentStream, commentLine))
                 ++internalLines;
             localCommentLinesCount += internalLines;
-            // Replace the comment body with /**/. But if the comment is multiline
-            // and has text after it in the same line, move that text to the next line:
+            // Replace the comment body with /**/. But if the comment is multiline and has text after it in the same line,
+            // move that text to the next line and place additional /**/ to account that line already contains comment:
             // /*comment             --\     /**/
-            //  */ Some text         --/      Some text
-            if (internalLines > 1 && !std::regex_match(commentSuffix, blankStringRegex))
-                fileContents.replace(commentPos, commentBody.length(), emptyCommentString + "\n");
+            //  */ Some text         --/     /**/ Some text
+            bool isMultilineCommentWithText = (internalLines > 1 && !std::regex_match(commentSuffix, blankStringRegex));
+            if (isMultilineCommentWithText)
+                fileContents.replace(commentPos, commentBody.length(), cTypeEmptyComment + "\n" + cTypeEmptyComment);
             else
-                fileContents.replace(commentPos, commentBody.length(), emptyCommentString);
-            // Refresh the comments iterator (After this operation ++commentPtr is needed since the
-            // first found instance is /**/ as the commentPos index is before our replacement)
-            commentPtr = std::sregex_iterator(fileContents.cbegin() + commentPos, fileContents.cend(), cTypeCommentRegex);
+                fileContents.replace(commentPos, commentBody.length(), cTypeEmptyComment);
+            // Refresh the comments iterator (After this operation ++commentPtr is needed since the commentPos index is
+            // before our replacement and the first found instance will be /**/)
+            commentPtr = std::sregex_iterator(fileContents.cbegin() + commentPos, fileContents.cend(),
+                                              cTypeCommentWithPrefixAndSuffixRegex);
+            // Also if we have placed additional /**/, we should step over this stuff twice
+            isMultilineCommentWithText? ++++commentPtr : ++commentPtr;
         }
         localCommentLinesCount += CountLinearComments(fileContents);
         RemoveAllComments(fileContents);
@@ -109,8 +123,8 @@ private:
             // Replace each found //... instance with a /**/ and increase the counter
             std::smatch matchedComment;
             if(std::regex_search(contentLine.cbegin(), contentLine.cend(), matchedComment, linearCommentRegex)) {
-                std::string commentBody = matchedComment.str(2);
-                fileContents.replace(fileContents.find(commentBody), commentBody.length(), emptyCommentString);
+                std::string commentBody = matchedComment.str(1);
+                fileContents.replace(fileContents.find(commentBody), commentBody.length(), cTypeEmptyComment);
                 ++localCommentLinesCount;
             }
         }
@@ -126,8 +140,9 @@ private:
             // Remove each instance of /**/ along with leading newline sign if
             // it is the only text in the line, otherwise remove only /**/
             std::smatch matchedComment;
-            if(std::regex_search(contentLine.cbegin(), contentLine.cend(), matchedComment, emptyCommentRegex)) {
-                if (std::regex_match(std::string(matchedComment.prefix()), blankStringRegex))
+            if(std::regex_search(contentLine.cbegin(), contentLine.cend(), matchedComment, cTypeCommentRegex)) {
+                if (std::regex_match(std::string(matchedComment.prefix()), blankStringRegex) &&
+                    std::regex_match(std::string(matchedComment.suffix()), blankStringRegex))
                     fileContents.erase(fileContents.find(contentLine + "\n"), contentLine.length() + 1);
                 else
                     fileContents.erase(fileContents.find(matchedComment.str()), matchedComment.length());
@@ -160,6 +175,7 @@ private:
                           if(fileProcess.joinable())
                               fileProcess.join();
                       });
+        fileProcesses.clear();
     }
 public:
     ConcurrentLineCounter() {
@@ -177,31 +193,34 @@ public:
         fileProcesses.emplace_back(ConcurrentLineCounter::CountLines, fileName);
     };
 
-    // Output statistic both to the stream
+    // Print collected statistics to the output stream
     friend std::ostream & operator << (std::ostream & outStream, ConcurrentLineCounter & linesCounter);
 
     ~ConcurrentLineCounter() {
+        // Wait until the last thread has finished its operation
         JoinThreads();
-        fileProcesses.clear();
     }
 };
 
 // Static variables, used in the class
 boost::mutex      ConcurrentLineCounter::updateCountersLock;
-const std::regex  ConcurrentLineCounter::blankStringRegex           (R"__(^\s*$)__");
-const std::regex  ConcurrentLineCounter::quotedStringRegex          (R"__("(?:\\.|[^\\"\n])*")__");
-const std::regex  ConcurrentLineCounter::cTypeCommentRegex          (R"__((.*)(/\*[^*]*\*+(?:[^/*][^*]*\*+)*/)(.*))__");
-const std::regex  ConcurrentLineCounter::linearCommentRegex         (R"__((.*)(//[^\n]*)(.*))__");
-const std::regex  ConcurrentLineCounter::cTypeCommentPrefixRegex    (R"__(^.*/\*\*/.*$)__");
-const std::regex  ConcurrentLineCounter::linearCommentPrefixRegex   (R"__(^.*//.*$)__");
-const std::regex  ConcurrentLineCounter::emptyCommentRegex          (R"__(/\*\*/)__");
-const std::string ConcurrentLineCounter::emptyCommentString         ("/**/");
+const std::regex  ConcurrentLineCounter::blankStringRegex                     (R"__(^\s*$)__");
+const std::regex  ConcurrentLineCounter::quotedStringRegex                    (R"__("(?:\\.|[^\\"\n])*")__");
+const std::regex  ConcurrentLineCounter::rawStringRegex                       (R"__(R"(.*)\((?:.|\n)*\)\1")__");
+const std::regex  ConcurrentLineCounter::cTypeCommentRegex                    (R"__((/\*[^*]*\*+(?:[^/*][^*]*\*+)*/))__");
+const std::regex  ConcurrentLineCounter::cTypeCommentWithPrefixAndSuffixRegex (R"__((.*)(/\*[^*]*\*+(?:[^/*][^*]*\*+)*/)(.*))__");
+const std::regex  ConcurrentLineCounter::cTypeCommentInPrefixRegex            (R"__(^.*/\*\*/.*$)__");
+const std::regex  ConcurrentLineCounter::cTypeSequentialCommentsRegex         (R"__(\*/[ \t]*/\*)__");
+const std::regex  ConcurrentLineCounter::linearCommentRegex                   (R"__((//.*))__");
+const std::regex  ConcurrentLineCounter::linearCommentInPrefixRegex           (R"__(^.*//.*$)__");
+const std::string ConcurrentLineCounter::cTypeEmptyComment                    ("/**/");
 ConcurrentLineCounter::CounterType             ConcurrentLineCounter::filesCount;
 ConcurrentLineCounter::ConcurrentCounterType   ConcurrentLineCounter::blankLinesCount;
 ConcurrentLineCounter::ConcurrentCounterType   ConcurrentLineCounter::codeLinesCount;
 ConcurrentLineCounter::ConcurrentCounterType   ConcurrentLineCounter::commentLinesCount;
 
 std::ostream & operator << (std::ostream & outStream, ConcurrentLineCounter & lineCounter) {
+    // Wait until the last thread has finished its operation
     lineCounter.JoinThreads();
     outStream << "Number of scanned files:\t\t"          << ConcurrentLineCounter::filesCount
               << "\nwhere:\n\tnumber of code lines:\t\t" << ConcurrentLineCounter::codeLinesCount
@@ -224,10 +243,10 @@ void ConcurrentCodeLinesCount()
     std::tie(dirPath, outFileName) = GetUserInputUI();
     // Allowed extensions
     std::vector<std::regex> extensions({
-        std::regex(R"raw(^.*\.c$)raw"),
-        std::regex(R"raw(^.*\.cpp$)raw"),
-        std::regex(R"raw(^.*\.h$)raw"),
-        std::regex(R"raw(^.*\.hpp$)raw")
+        std::regex(R"__(^.*\.c$)__"),
+        std::regex(R"__(^.*\.cpp$)__"),
+        std::regex(R"__(^.*\.h$)__"),
+        std::regex(R"__(^.*\.hpp$)__")
     });
     // The predicate to figure out if the given string corresponds given regex
     auto StrMatchRegex = [](std::string str, std::regex reg) {
