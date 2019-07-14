@@ -1,7 +1,21 @@
-#pragma once
-#include<string>
-#include<iostream>
-#include<iterator>
+#include"StringParse.h"
+
+void RemoveVowels(std::string &str)
+{
+	std::regex vowels("\"(?:\\\\\"|.)*?\"");
+	std::stringstream withoutVowels();
+	std::string result;
+	std::regex_replace(std::back_inserter(result), str.begin(),
+		str.end(), vowels, "$2");
+	str = result;
+}
+
+std::string RemoveSpaces(std::string &str)
+{
+	str.erase(remove(str.begin(), str.end(), ' '), str.end());
+	str.erase(remove(str.begin(), str.end(), '\t'), str.end());
+	return str;
+}
 
 int CountOfSubStrings(std::string source, std::string lexeme)
 {
@@ -32,14 +46,14 @@ bool IsLeftComment(char firstSymbol, char secondSymbol, std::string str)// be su
 std::string RemoveMultiCommentSymbols(std::string &str)
 {
 	auto i = str.begin();
-	while ((i+1) != str.end() && i != str.end())
+	while ((i + 1) != str.end() && i != str.end())
 	{
 		if ((*i == '*' && *(i + 1) == '/') ||
 			*i == '/' && *(i + 1) == '*')
 		{
 			str.erase(i);
 			str.erase(i);
-			if(i == str.end())
+			if (i == str.end())
 				break;
 		}
 		else
@@ -57,7 +71,7 @@ bool IsRightComment(std::string str)
 		return ((*(it - 1) == '*') && (*it == '/'));
 }
 
-void RemoveAllBetweenMultiComment(std::string &str)
+void RemoveAllBetweenMultiComment(std::string &str)// here we know that /**/ are alway one by each other
 {
 	if (!(CountOfSubStrings(str, "/*")))
 		return;
