@@ -26,8 +26,7 @@ void DirectoryBrowser::promptPath()
 			cout << "\nProcessed directory: " << initDirectory.string() << '\n';
 			break;
 		}
-		cout << "Such directory doesn't exist.\
- Please try again\n>> ";
+		cout << "Such directory doesn't exist.\n";
 		initDirectory.clear();
 	}
 }
