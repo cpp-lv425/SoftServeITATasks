@@ -168,7 +168,7 @@ public:
 		return static_cast<bool>((*valueData).valueBool);
 	};
 	
-	// Transform to char, if the internal type is bool,
+	// Transform to char, if the internal type is char,
 	// otherwise throw bad_cast exception
     explicit operator char() const {
 		if (valueType != ValueType::TypeChar)
@@ -176,7 +176,7 @@ public:
 		return static_cast<char>((*valueData).valueChar);
 	};
 	
-	// Transform to unsigned char, if the internal type is bool,
+	// Transform to unsigned char, if the internal type is unsigned char,
 	// otherwise throw bad_cast exception
     explicit operator unsigned char() const {
 		if (valueType != ValueType::TypeUnsignedChar)
@@ -184,7 +184,7 @@ public:
 		return static_cast<unsigned char>((*valueData).valueUChar);
 	};
 	
-	// Transform to int, if the internal type is bool,
+	// Transform to int, if the internal type is int,
 	// otherwise throw bad_cast exception
     explicit operator int() const {
 		if (valueType != ValueType::TypeInt)
@@ -192,7 +192,7 @@ public:
 		return static_cast<int>((*valueData).valueLLInt);
 	};
 	
-	// Transform to short, if the internal type is bool,
+	// Transform to short, if the internal type is short,
 	// otherwise throw bad_cast exception
     explicit operator short int() const {
 		if (valueType != ValueType::TypeShortInt)
@@ -200,7 +200,7 @@ public:
 		return static_cast<short int>((*valueData).valueLLInt);
 	};
 	
-	// Transform to long, if the internal type is bool,
+	// Transform to long, if the internal type is long,
 	// otherwise throw bad_cast exception
     explicit operator long int() const {
 		if (valueType != ValueType::TypeLongInt)
@@ -208,7 +208,7 @@ public:
 		return static_cast<long int>((*valueData).valueLLInt);
 	};
 	
-	// Transform to long long, if the internal type is bool,
+	// Transform to long long, if the internal type is long long,
 	// otherwise throw bad_cast exception
     explicit operator long long int() const {
 		if (valueType != ValueType::TypeLongLongInt)
@@ -216,7 +216,7 @@ public:
 		return static_cast<long long int>((*valueData).valueLLInt);
 	};
 	
-	// Transform to unsigned, if the internal type is bool,
+	// Transform to unsigned, if the internal type is unsigned,
 	// otherwise throw bad_cast exception
     explicit operator unsigned int() const {
 		if (valueType != ValueType::TypeUnsignedInt)
@@ -224,7 +224,7 @@ public:
 		return static_cast<unsigned int>((*valueData).valueLLUInt);
 	};
 	
-	// Transform to unsigned short, if the internal type is bool,
+	// Transform to unsigned short, if the internal type is unsigned short,
 	// otherwise throw bad_cast exception
     explicit operator unsigned short int() const {
 		if (valueType != ValueType::TypeUnsignedShortInt)
@@ -232,7 +232,7 @@ public:
 		return static_cast<unsigned short>((*valueData).valueLLUInt);
 	};
 	
-	// Transform to unsigned long, if the internal type is bool,
+	// Transform to unsigned long, if the internal type is unsigned long,
 	// otherwise throw bad_cast exception
     explicit operator unsigned long int() const {
 		if (valueType != ValueType::TypeUnsignedLongInt)
@@ -240,7 +240,7 @@ public:
 		return static_cast<unsigned long int>((*valueData).valueLLUInt);
 	};
 	
-	// Transform to unsigned long long, if the internal type is bool,
+	// Transform to unsigned long long, if the internal type is unsigned long long,
 	// otherwise throw bad_cast exception
     explicit operator unsigned long long int() const {
 		if (valueType != ValueType::TypeUnsignedLongLongInt)
@@ -248,7 +248,7 @@ public:
 		return static_cast<unsigned long long int>((*valueData).valueLLUInt);
 	};
 	
-	// Transform to float, if the internal type is bool,
+	// Transform to float, if the internal type is float,
 	// otherwise throw bad_cast exception
     explicit operator float() const {
 		if (valueType != ValueType::TypeFloat)
@@ -256,7 +256,7 @@ public:
 		return static_cast<float>((*valueData).valueLDouble);
 	};
 	
-	// Transform to double, if the internal type is bool,
+	// Transform to double, if the internal type is double,
 	// otherwise throw bad_cast exception
     explicit operator double() const {
 		if (valueType != ValueType::TypeDouble)
@@ -264,7 +264,7 @@ public:
 		return static_cast<double>((*valueData).valueLDouble);
 	};
 	
-	// Transform to long double, if the internal type is bool,
+	// Transform to long double, if the internal type is long double,
 	// otherwise throw bad_cast exception
     explicit operator long double() const {
 		if (valueType != ValueType::TypeLongDouble)
