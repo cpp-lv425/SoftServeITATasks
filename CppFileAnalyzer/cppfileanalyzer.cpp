@@ -1,84 +1,40 @@
 #include "cppfileanalyzer.h"
 
 //#define DEBUG
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <iterator>
 #include <functional>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 using std::cout;
 using std::cin;
 
-CppFileAnalyzer::CppFileAnalyzer()
-{
-}
-
-void CppFileAnalyzer::promptPath()
-{
-	std::string input;
+void CppFileAnalyzer::promptDirectory()
+{	
 	while (true)
 	{
-		input = promptString();
-
-		initDirectory = (input.size()) ? input :
-			fs::current_path();
-
-		// converts directory separators in path to satify
-		// requirement of current OS
-		initDirectory.make_preferred();
-
-		if (fs::exists(initDirectory))
+		try
 		{
-			cout << "\nProcessed directory: " << initDirectory.string() << '\n';
+			dirBrowser.promptPath();
+			// launch timer to measure execution time
+			startTime = ch::high_resolution_clock::now();
+			// searching for files to process
+			dirBrowser.browseForFiles();
 			break;
 		}
-		cout << "Such directory doesn't exist.\
- Please try again\n>> ";
-		initDirectory.clear();
+		catch (const std::exception& e)
+		{
+			cout << "\nUnable to process entered directory due to access denial.\
+ Please specify another directory.\n";
+		}
 	}
 }
 
-std::string CppFileAnalyzer::promptString()const
-{
-	cout << "\nEnter project root folder in format \"Drive:/dir/subdir\"\n"
-		<< "or enter empty line to process current work"
-		<< " directory\n>> ";
-
-	std::string input;
-	std::getline(cin, input);
-	return input;
-}
-
-void CppFileAnalyzer::browseForFiles()
-{
-	// launch timer
-	startTime = ch::high_resolution_clock::now();
-
-	fs::recursive_directory_iterator begin(initDirectory);
-	fs::recursive_directory_iterator end;
-
-	// enlists *.c *.h *.hpp *.cpp files
-	std::copy_if(begin, end, std::back_inserter(files),
-		[](const fs::path& path)
-		{
-			return fs::is_regular_file(path) &&
-				(
-				(path.extension() == ".c") ||
-					(path.extension() == ".cpp") ||
-					(path.extension() == ".h") ||
-					(path.extension() == ".hpp")
-					);
-		});
-
-	std::cout << "\nList of found files: " << std::endl;
-	std::copy(files.begin(), files.end(),
-		std::ostream_iterator<fs::path>(std::cout, "\n"));
-	std::cout << '\n';
-}
-
 void CppFileAnalyzer::start()
-{
+{	
+	files = dirBrowser.getFiles();
+
+	// processing files
 	allocateWork();
 	outputResults();
 	writeResultsToFile();
@@ -88,14 +44,19 @@ void CppFileAnalyzer::allocateWork()
 {
 	// there are no files to process
 	if (!files.size())
+	{
+		cout << "There are no files to process"
+			"in current directory.\n";
 		return;
+	}		
 
 	int minPerThread = 2;
 	int maxThreads = (files.size() + minPerThread - 1) / minPerThread;
 
 	int supportedThreads = std::thread::hardware_concurrency();
 
-	// choses desired number of threads or supported number of threads 
+	// choses desired number of threads or 
+	// supported number of threads 
 	// whichever is less
 	// if std::thread::hardware_concurrency() returns 0
 	// number of threads is 4
@@ -371,5 +332,3 @@ void CppFileAnalyzer::writeResultsToFile() const
 	cout << "Results have been written to the file\
  \"results.txt\"\n";
 }
-
-

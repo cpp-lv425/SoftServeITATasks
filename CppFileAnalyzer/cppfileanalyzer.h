@@ -3,15 +3,16 @@
 
 #include "threadspool.h"
 
-#include <deque>
-#include <string>
 #include <filesystem>
+#include <deque>
+
+#include "directorybrowser.h"
+
 namespace fs = std::filesystem;
 namespace ch = std::chrono;
 
 class CppFileAnalyzer
-{
-	fs::path initDirectory;		
+{	
 	std::deque< fs::path> files;
 	std::mutex mtx;
 	std::atomic<int> codeLinesNum;
@@ -19,7 +20,8 @@ class CppFileAnalyzer
 	std::atomic<int> filesNum;
 	std::atomic<int> commLinesNum;	
 	ch::time_point<ch::steady_clock> startTime;	
-	ch::duration<double> duration;		
+	ch::duration<double> duration;	
+	DirectoryBrowser dirBrowser;
 
 	enum class TextType
 	{
@@ -31,17 +33,12 @@ class CppFileAnalyzer
 		CodeAndComment
 	};
 
-public:
-	CppFileAnalyzer();	
-	// prompts directory from user
-	void promptPath();
-	// iterates through dir & subdirs looking form *.c *.cpp *.h *.hpp files
-	void browseForFiles();
+public:	
+	void promptDirectory();
+	// prompts directory from user	
 	void start();
 
-private:	
-	// prompts string from user
-	std::string promptString()const;
+private:		
 	// creates threads pool & adds tasks to tasks queue
 	void allocateWork();	
 	// processes single file
