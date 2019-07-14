@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void StringListPlot(char** list);		
+void StringListPlot(char** list);		/* Plotting list to stdout */
 
 void StringListInit(char*** list);		
-void StringListDestroy(char*** list);		
-void StringListAdd(char** list, char * str);	
-void StringListRemove(char** list, char* str);/* Removes all occurrences of str in the list. */				
-int StringListSize(char** list);/* Returns the number of items in the list. */						
-int StringListIndexOf(char** list, char* str);/* Returns the index position of the first occurrence of str in the list. */
-void StringListRemoveDuplicates(char** list);/* Removes duplicate entries from the list.*/		
+void StringListDestroy(char*** list);		/* Destroy list and set pointer to NULL. */
+void StringListAdd(char** list, char * str);	/* Inserts value at the end of the list. */
+void StringListRemove(char** list, char* str);	/* Removes all occurrences of str in the list. */				
+int StringListSize(char** list);		/* Returns the number of items in the list.*/	
+int StringListIndexOf(char** list, char* str);	/* Returns the index position of the first occurrence of str in the list. */
+void StringListRemoveDuplicates(char** list);	/* Removes duplicate entries from the list.*/		
 
 int main (int argc, char ** argv){
 	printf ("-->START<--\n");
@@ -46,18 +46,6 @@ int main (int argc, char ** argv){
 	printf ("FIRST INDEX IS %i OF %s", StringListIndexOf(list1, str11), str11);
 	printf ("FIRST INDEX IS %i OF %s", StringListIndexOf(list1, str12), str12);
 	printf ("FIRST INDEX IS %i OF %s", StringListIndexOf(list1, str3), str3);
-
-	/*StringListRemove2(list1, str2);
-	StringListPlot2(list1);
-
-	StringListRemove2(list1, str11);
-	StringListPlot2(list1);
-
-	StringListRemove2(list1, str3);
-	StringListPlot2(list1);*/
-	
-	//StringListRemoveDuplicates(list1);
-	//StringListPlot2(list1);
 	
 	StringListRemoveDuplicates(list1);
 	StringListPlot(list1);
@@ -96,71 +84,95 @@ int main (int argc, char ** argv){
 }
 
 void StringListInit(char*** list){
+	printf ("-->Init<--");
+	if (!list)
+		return;
 	if ( !(* list = (char**)malloc (2 * sizeof(char**))) )
 		return;
-	** list = 0;					
-	*(++(* list)) = 0;				
+	printf ("\tallocated\t%p\n", * list);
+	** list = 0;					//	a
+	*(++(* list)) = 0;				//	b
 }
 void StringListDestroy(char*** list) {/* Destroy list and set pointer to NULL. */
+	printf ("->destroy<-\t");
+	if (!list)
+		return;
 	--(*list);
 	while (**list != 0) {
 		char ** nextItem = (char **)**list;
 		++nextItem;
 		nextItem = (char **)* nextItem;
+		printf ("\n\t\titem:\t\t%p", **list);
 		free(**list);
 		** list = (char *)nextItem;
 	}
+	printf ("\n\t\thead:\t\t%p\n", *list);
 	free(*list);
 	*list = 0;
 }
 
 void StringListAdd(char** list, char * str) {/* Inserts value at the end of the list. */
+	printf ("-->adding<--\t%p\t%s", str, str);
+	if (!list)
+		return;
 	char ** item;
 	if ( !(item = (char**)malloc (2 * sizeof(char**))) )
 		return;
-	* item = str;					
+	* item = str;					//	a
+	printf ("\t\tallocated\t%p\n", item);
 
-	if (*list == 0) {				//	first adding
-		* list = (char *)item;			
+	if (*list == 0) {				//	first addition
+		* list = (char *)item;			//	b
 		--list;
-		* list = (char *)item;			
-		*(++item) = 0; 				
-	} else {					//	next addings
-		char** last = (char**)*list;		
-		++last;					
-		* last = (char *)item;			
-		* list = (char *)item;			
-		*(++item) = 0;				
+		* list = (char *)item;			//	c
+		*(++item) = 0; 				//	d
+	} else {					//	next additions
+		char** tmp = (char**)*list;		//	b1
+		++tmp;					//	b1
+		* tmp = (char *)item;			//	b1
+		* list = (char *)item;			//	c1
+		*(++item) = 0;				//	d1
 	}
 }
 
-void StringListPlot(char** list) {
+void StringListPlot(char** list) { /* Plotting list to stdout */
+	printf ("->plot<-\n");
+	if (!list)
+		return;
 	--list;
 	while (*list != 0) {
 		list = (char**)*list;
+		printf ("*item:%s", *list);
 		++list;
 	}
 }
 void StringListRemove(char** list, char* str) {/* Removes all occurrences of str in the list. */			
+	printf ("->Remove<-\t%s", str);
+	if (!list)
+		return;
 	--list;
 	while (*list != 0) {
 		char ** nextItem = (char **)*list;				
 		if (!strcmp(*nextItem, str)){			
 			++nextItem;
 			nextItem = (char **)* nextItem;		
-			free(*list);			
-			*list = (char *)nextItem;	
+			printf ("\t\tfree\t\t%p\n", *list);
+			free(*list);			//	e
+			*list = (char *)nextItem;	//	g
 		} else {					
 			list = ++nextItem;
 		}
 	}
 }
 
-void StringListRemoveDuplicates(char** list) {/* Removes duplicate entries from the list. */	
+void StringListRemoveDuplicates(char** list) {/* Removes duplicate entries from the list. */
+	if (!list)
+		return;	
 	--list;
 	while (*list != 0) {
 		char ** nextItem = (char **)*list;
 		char * str = *nextItem;	
+		printf ("current str:\t%s", str);
 		StringListRemove(++++nextItem, str);
 		--nextItem;
 		list = (char **)nextItem;	
@@ -168,6 +180,8 @@ void StringListRemoveDuplicates(char** list) {/* Removes duplicate entries from 
 }
 
 int StringListSize(char** list) {/* Returns the number of items in the list. */
+	if (!list)
+		return -1;
 	--list;
 	int size = 0;
 	while (*list != 0) {
@@ -179,6 +193,8 @@ int StringListSize(char** list) {/* Returns the number of items in the list. */
 }
 
 int StringListIndexOf(char** list, char* str) {/* Returns the index position of the first occurrence of str in the list. */
+	if (!list)
+		return -1;
 	--list;
 	int index = -1;
 	while (*list != 0) {
