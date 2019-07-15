@@ -1,5 +1,5 @@
 //
-// Created by oleks on 10.07.2019.
+// Created by oleks on 15.07.2019.
 //
 
 #include "AnyType.h"
@@ -10,15 +10,15 @@ void AnyType::clear() {
     type = none;
 }
 
-void AnyType::swap(AnyType* anyType) {
+void AnyType::swap(AnyType &anyType) {
     // Swap data
     Data tmp = data;
-    data = anyType->data;
-    anyType->data = tmp;
+    data = anyType.data;
+    anyType.data = tmp;
     // Swap type
     Type tmp_type = type;
-    type = anyType->type;
-    anyType->type = tmp_type;
+    type = anyType.type;
+    anyType.type = tmp_type;
 }
 
 AnyType::AnyType() {
@@ -45,9 +45,29 @@ AnyType::AnyType(bool _b) {
     type = type_bool;
 }
 
+AnyType::AnyType(const AnyType &anyType) {
+    data = anyType.data;
+    type = anyType.type;
+}
+
+AnyType::AnyType(AnyType &&anyType) {
+    data = anyType.data;
+    type = anyType.type;
+    anyType.clear();
+}
+
 AnyType& AnyType::operator=(double _d) {
     data.d = _d;
     type = type_double;
+    return *this;
+}
+
+AnyType& AnyType::operator=(AnyType &&anyType) {
+    if(this != &anyType) {
+        data = anyType.data;
+        type = anyType.type;
+        anyType.clear();
+    }
     return *this;
 }
 

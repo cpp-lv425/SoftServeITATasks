@@ -1,13 +1,12 @@
 //
-// Created by oleks on 10.07.2019.
+// Created by oleks on 15.07.2019.
 //
 
-#ifndef UNTITLED_ANYTYPE_H
-#define UNTITLED_ANYTYPE_H
+#ifndef UNTITLED5_ANYTYPE_H
+#define UNTITLED5_ANYTYPE_H
 
 #include <iostream>
-#include <exception>
-#include <cstring>
+
 
 enum Type {none, type_int, type_char, type_double, type_bool};
 
@@ -17,6 +16,7 @@ union Data {
     char c;
     bool b;
 };
+
 
 class AnyType {
 private:
@@ -28,6 +28,9 @@ public:
     explicit AnyType(int);
     explicit AnyType(char);
     explicit AnyType(bool);
+    AnyType(const AnyType&);
+    AnyType(AnyType&&);
+    AnyType& operator=(AnyType&&);
     AnyType& operator=(double);
     AnyType& operator=(int);
     AnyType& operator=(char);
@@ -39,8 +42,8 @@ public:
     bool toBool() const;
     Type getType() const;
     void destroy();
-    void swap(AnyType*);
+    void swap(AnyType&);
 };
 
 
-#endif //UNTITLED_ANYTYPE_H
+#endif //UNTITLED5_ANYTYPE_H

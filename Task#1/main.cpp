@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 
-#define DATA 0
-#define NEXT 1
-#define POINTERS_IN_NODE 2
+const int DATA = 0;
+const int NEXT = 1;
+const int POINTERS_IN_NODE = 2;
 
 void StringPrint(char** list) {
     printf("<begin>\n");
@@ -18,6 +19,8 @@ void StringPrint(char** list) {
 void StringListInit(char*** list) {
     // Allocation 8 bytes for node [pointer to str][pointer to next node]
     *list = (char**) malloc(sizeof(char*) * POINTERS_IN_NODE);
+    if(*list == NULL)
+        return;
     (*list)[DATA] = (*list)[NEXT] = NULL;
 }
 
@@ -43,6 +46,8 @@ int StringListSize(char** list) {
 void StringListAdd(char** list, char* str) {
     // Allocate memory for string and write data to this memory
     char* text = (char*) malloc(sizeof(char) * strlen(str) + 1);
+    if(text == NULL)
+        return;
     strcpy(text, str);
 
     // If node don't contain string (root node) - write data
@@ -54,6 +59,8 @@ void StringListAdd(char** list, char* str) {
         while(list[NEXT]) list = (char**) list[NEXT];
         // Create new node and write data
         char** node = (char**) malloc(sizeof(char*) * POINTERS_IN_NODE);
+        if(node == NULL)
+            return;
         node[DATA] = text;
         node[NEXT] = NULL;
         list[NEXT] = (char*) node;
@@ -76,11 +83,6 @@ void StringListRemove(char** list, char* str) {
                 char *tmp = list[DATA];
                 memcpy(list, list[NEXT], sizeof(char *) * POINTERS_IN_NODE);
                 free(tmp);
-            }
-            // If list has one node
-            else if(list[DATA]) {
-                free(list[DATA]);
-                list[DATA] = NULL;
             }
         // Check next node
         } else {
@@ -117,7 +119,7 @@ void StringListRemoveDuplicates(char** list) {
                 free(curr);
                 curr = (char**) prev[NEXT];
             }
-            // Go to the next node
+                // Go to the next node
             else {
                 prev = curr;
                 curr = (char**) curr[NEXT];
@@ -131,10 +133,10 @@ void StringListRemoveDuplicates(char** list) {
 void StringListReplaceInStrings(char** list, char* before, char* after) {
     while (list) {
         if (!strcmp(list[DATA], before)) {
-            // Remove string from node
-            free(list[DATA]);
             // Write new string
-            list[DATA] = (char*) malloc(sizeof(char) * strlen(after) + 1);
+            realloc(list[DATA], sizeof(char) * strlen(after) + 1);
+            if(list[DATA] == NULL)
+                return;
             strcpy(list[DATA], after);
         }
         list = (char**) list[NEXT];
@@ -171,5 +173,8 @@ int main() {
     StringListAdd(list, "Hello");
     StringListAdd(list, "Hi");
     StringListAdd(list, "Aloha");
+    StringPrint(list);
+    StringListReplaceInStrings(list, "Hi", "Hao");
+    StringPrint(list);
     StringListDestroy(&list);
 }
