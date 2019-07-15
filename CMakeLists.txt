@@ -2,9 +2,9 @@ cmake_minimum_required (VERSION 3.12)
 
 project (SoftServeITATasks)
 
-set(BOOST_ROOT       "C:/Program Files/boost")
-set(BOOST_LIBRARYDIR "C:/Program Files/boost/lib")
-set(BOOST_INCLUDEDIR "C:/Program Files/boost/include/boost-1_69")
+set(BOOST_ROOT       "C:/boost")
+set(BOOST_LIBRARYDIR "C:/boost/lib")
+set(BOOST_INCLUDEDIR "C:/boost/include/boost-1_69")
 
 find_package(Boost REQUIRED COMPONENTS filesystem thread atomic regex chrono date_time)
 
