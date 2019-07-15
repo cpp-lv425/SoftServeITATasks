@@ -14,7 +14,7 @@ PathesQueue::PathesQueue(PathesQueue && obj)
 	pathesQueue = std::move(obj.pathesQueue);
 }
 
-PathesQueue::PathesQueue(PathesQueue & obj)
+PathesQueue::PathesQueue(PathesQueue & obj)////////////////////////////////
 {
 	pathesQueue = obj.pathesQueue;
 }
