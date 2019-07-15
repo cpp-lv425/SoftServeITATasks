@@ -12,8 +12,14 @@ using std::cout;
 int main()
 {
     char** StringList = nullptr;
-
-    StringListInit(&StringList);
+    try
+    {
+        StringListInit(&StringList);
+    } catch (const char* e)
+    {
+        cout << e << '\n';
+        exit(-1);
+    }
 
     while (true)
     {

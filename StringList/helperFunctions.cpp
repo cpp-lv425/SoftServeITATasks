@@ -1,8 +1,14 @@
 #pragma warning(disable: 4996)
 #include "helperfunctions.h"
+#include "stringlist.h"
+
 #include <iostream>
 #include <limits>
 #include <cstring>
+
+
+
+
 
 using std::cout;
 using std::cin;
@@ -11,14 +17,15 @@ using std::ios_base;
 
 void TraverseList(char** list)
 {
+
     cout << "The list consists of the following items:\n\n";
-    char*** cur = reinterpret_cast<char***>(list[1]);
+    char** cur = reinterpret_cast<char**>(list[1]);
 
     for (int i = 1; cur;
-         ++cur = reinterpret_cast<char***>(*cur), ++i)
+         cur = NextNode(cur), ++i)
     {
         cout << "Item No. " << i
-                  << '\t' << reinterpret_cast<char*>(cur[0])
+             << '\t' << reinterpret_cast<char*>(cur[0])
                 << '\n';
     }
 
@@ -63,14 +70,14 @@ int PromptIntInRange(int start, int end)
 int MainMenu()
 {
     cout << "\n1. Add string to the list.\n"
-              << "2. Removes all occurrences of string in the list.\n"
-              << "3. Print the number of items in the list.\n"
-              << "4. Returns the index position of the first occurrence of string in the list.\n"
-              << "5. Removes duplicate entries from the list.\n"
-              << "6. Replaces every occurrence of string_1, in each of the string lists's strings, with string_2.\n"
-              << "7. Sorts the list of strings in ascending order.\n"
-              << "8. Print the list.\n"
-              << "9. Quit.\n\n";
+         << "2. Removes all occurrences of string in the list.\n"
+         << "3. Print the number of items in the list.\n"
+         << "4. Returns the index position of the first occurrence of string in the list.\n"
+         << "5. Removes duplicate entries from the list.\n"
+         << "6. Replaces every occurrence of string_1, in each of the string lists's strings, with string_2.\n"
+         << "7. Sorts the list of strings in ascending order.\n"
+         << "8. Print the list.\n"
+         << "9. Quit.\n\n";
 
     return PromptIntInRange(1, 9);
 }
@@ -89,9 +96,11 @@ char* InputString()
     size_t size = strlen(buf) + 1;
 
     if(size <= 1)
-    {        
+    {
         cout << "Empty line has been entered.\n";
+        // checked for null earlier
         free(buf);
+
         return  nullptr;
     }
     char* input = static_cast<char*>(malloc(sizeof(char) * size));
@@ -99,11 +108,16 @@ char* InputString()
     if(!input)
     {
         cout << "Failed to allocate memory.\n";
+
+        // checked for null earlier
         free(buf);
+
         return  nullptr;
     }
 
     strcpy(input, buf);
+    // checked for null earlier
     free(buf);
+
     return input;
 }
