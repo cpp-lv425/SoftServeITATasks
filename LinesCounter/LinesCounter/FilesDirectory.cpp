@@ -42,15 +42,22 @@ void PrintResultInTheFile(std::queue<CodeFile> codeFileQ, std::chrono::microseco
 		int m_blankCount = 0;
 		int m_commentCount = 0;
 		int m_physicalCount = 0;
+
+		LinesCount& operator +=(CodeFile &codeFileObj)
+		{
+			this->m_blankCount += codeFileObj.GetBlankCount();
+			this->m_commentCount += codeFileObj.GetCommentCount();
+			this->m_physicalCount += codeFileObj.GetPhysicalCount();
+			this->m_processedCount += codeFileObj.GetProcessedCount();
+			return *this;
+		}
 	}linesCount;
+	
 	int fileParsed = codeFileQ.size();
 
 	while (!codeFileQ.empty())
 	{
-		linesCount.m_processedCount += codeFileQ.front().GetProcessedCount();
-		linesCount.m_physicalCount += codeFileQ.front().GetPhysicalCount();
-		linesCount.m_commentCount += codeFileQ.front().GetCommentCount();
-		linesCount.m_blankCount += codeFileQ.front().GetBlankCount();
+		linesCount += codeFileQ.front();
 		codeFileQ.pop();
 	}
 	std::ofstream outline("Result.txt");

@@ -1,6 +1,6 @@
-An Amount of total parsed files = 56
-An Amount of total processed lines = 5888
-An Amount of total physical lines = 4882
-An Amount of total comment lines = 849
-An Amount of total blank lines = 671
-Time of running programm =7.839 seconds
+An Amount of total parsed files = 1
+An Amount of total processed lines = 5
+An Amount of total physical lines = 1
+An Amount of total comment lines = 2
+An Amount of total blank lines = 2
+Time of running programm =0.05 seconds

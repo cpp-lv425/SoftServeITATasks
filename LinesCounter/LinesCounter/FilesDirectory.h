@@ -10,7 +10,6 @@ namespace fs = std::experimental::filesystem;
 using namespace std;
 /*these functions provide work and search with files and folders*/
 
-int FilesInCurrentDirectory(string path);//count of file in the directory
 
 vector<fs::path> ListFilesInDirectory(const fs::path& dir);//move through all the files in the directory and 
 

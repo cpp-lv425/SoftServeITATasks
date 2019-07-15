@@ -3,6 +3,8 @@
 CodeFile::CodeFile(fs::path t_path)
 {
 	m_file.open(t_path);
+	if(!m_file)
+		throw std::runtime_error("Could not open file");
 	m_processedLinesCount = 0;
 	m_blankLinesCount = 0;
 	m_commentLinesCount = 0;

@@ -14,20 +14,22 @@ PathesQueue::PathesQueue(PathesQueue && obj)
 	pathesQueue = std::move(obj.pathesQueue);
 }
 
-PathesQueue::PathesQueue(PathesQueue & obj)////////////////////////////////
+PathesQueue::PathesQueue(PathesQueue & obj)
 {
 	pathesQueue = obj.pathesQueue;
 }
 
 PathesQueue & PathesQueue::operator=(const PathesQueue & other)
 {
-	pathesQueue = other.pathesQueue;
+	if(this != &other)
+		pathesQueue = other.pathesQueue;
 	return *this;
 }
 
 PathesQueue & PathesQueue::operator=(PathesQueue && other)
 {
-	pathesQueue = std::move(other.pathesQueue);
+	if(this != &other)
+		pathesQueue = std::move(other.pathesQueue);
 	return *this;
 }
 

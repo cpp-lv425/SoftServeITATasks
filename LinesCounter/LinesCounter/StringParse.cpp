@@ -114,7 +114,7 @@ bool IsAnyCodeInTheMultiCommStringOpen(std::string str)
 bool IsAnyCodeInTheMultiCommStringClose(std::string &str)
 {
 	auto it = str.begin();
-	while (*it != '*' && *(it + 1) != '/')
+	while (*it != '*' || *(it + 1) != '/')
 		str.erase(it);
 	RemoveMultiCommentSymbols(str);
 	return !str.empty();
