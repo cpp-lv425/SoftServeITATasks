@@ -252,5 +252,6 @@ void Var::swap(Var &b) {
 	Var tmp;
 	tmp = *this;
 	*this = b;
+	b = tmp;
 
 }

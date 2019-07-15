@@ -9,15 +9,15 @@ namespace fs = std::filesystem;
 
 int main()
 {
-	
+
 	string path = "C:\\Users\\Anastasia Antonyk\\Desktop\\SoftserveITATasks";
-	cout<<"Path:\t" << path << endl;
+	cout << "Path:\t" << path << endl;
 	cout << "Number of detected files:\t" << count_cpp_files(path) << endl;
 	vector<fs::path> cppfiles = list_cpp_files_in_directory(path); //find cpp files in chosen directory
 	vector<Myfile> files = objects(cppfiles); //making vector of object of cppfiles
 	vector<thread> t;
 	for (auto p : files) {
-		t.emplace_back(my_thread,p);
+		t.emplace_back(my_thread, p);
 	}
 	for (auto & p : t) {
 		p.join();

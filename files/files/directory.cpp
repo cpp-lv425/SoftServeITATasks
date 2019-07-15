@@ -8,9 +8,9 @@ using  namespace std;
 namespace fs = std::filesystem;
 
 //check if file have one of extension: cpp, c, hpp, h
-bool suitable_file(fs::directory_entry pathname){
+bool suitable_file(fs::directory_entry pathname) {
 	bool suitable = false;
-	vector<fs::path> extentions = {".cpp",".h",".c",".hpp"};
+	vector<fs::path> extentions = { ".cpp",".h",".c",".hpp" };
 	for (auto p : extentions) {
 		if ((pathname.path()).extension() == p) suitable = true;
 	}
@@ -37,7 +37,7 @@ vector<fs::path> list_cpp_files_in_directory(string path) {
 		if (suitable_file(p)) {
 			files.emplace_back(p.path());
 		}
-		
+
 	}
 	return files;
 }
@@ -48,7 +48,7 @@ vector<Myfile> objects(vector<fs::path> path_files) {
 	for (auto p : path_files) {
 		files.emplace_back(p);
 	}
-	
+
 	return files;
 }
 
