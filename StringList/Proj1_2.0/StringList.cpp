@@ -28,6 +28,8 @@ char** getPrev(char** ptr)//get pointer from the previous element
 void StringListInit(char *** ptr)//List initialization
 {
 	*ptr = (char**)malloc(sizeof(NODE));// allocate memory for list
+	if (ptr == NULL)
+		return;
 	/*set all pointers for first node NULL. This element will be the first element in the list*/
 	setNext((*ptr), NULL);
 	setPrev((*ptr), NULL);
@@ -52,12 +54,16 @@ void StringListAdd(char** list, char* str)//queue realiation.
 		writeAdr = GetNewNode(list);// create new node
 	}
 	getData(writeAdr) = (char*)malloc(sizeof(char)*len);// allocate momory for the string
+	if (getData(writeAdr) == NULL)
+		return;
 	strcpy(getData(writeAdr), str);//copy string to our pointer
 }
 
 char** GetNewNode(char** list)// return a pointer to the new node in the memory
 {
 	char **newNode = (char**)malloc(sizeof(NODE));// create node in the memory
+	if (newNode == NULL)
+		return NULL;
 	setNext(newNode, NULL);// this node will be the last one, so we should set its next node NULL
 	if (getPrev(list) == NULL) // we're trying to add second element. Here is some specific rules for creating the connections
 	{
@@ -90,6 +96,8 @@ char** GetNewNode(char** list)// return a pointer to the new node in the memory
 //
 void StringListDestroy(char*** list)
 {
+	if (getPrev(*list) == NULL)
+		return;
 	char **victim = getPrev(*list);// set pointer to the end of the list
 	char **victimTmp;// temporary var which we will set in the position which we wanna delete
 	while (*victim != **list && *victim != NULL)// while(pointer != NULL and pointer != first node). We're moving from the end
@@ -108,6 +116,8 @@ void StringListDestroy(char*** list)
 char* GetStringByPosition(char** list, int pos)// return the string by its position in the list
 {
 	char **cur = list;//to the root
+	if (cur == NULL)
+		return NULL;
 	while (pos)//while(pos > 0)
 	{
 		cur = getNext(cur);//move
@@ -191,6 +201,8 @@ void StringListSort(char** list)//Sort
 
 char** DeleteNode(char** node, char **list)// Function delete node and return the previous node(in order to )
 {
+	if (node == NULL)
+		return NULL;
 	char **ptr = node;// ptr to root
 	char **victim;// ptr to element which will be deleted
 	if (ptr == getPrev(ptr))// only 1 element in the list(root). we don't actually delete the root. we just set NULL.
@@ -199,7 +211,7 @@ char** DeleteNode(char** node, char **list)// Function delete node and return th
 		//↳-↑
 		setPrev(ptr, NULL);
 		free(getData(ptr));//free string(node[1])
-		getData(ptr, NULL);//set data as NULL
+		getData(ptr);//set data as NULL
 		return ptr;//return this node
 	}
 
@@ -244,6 +256,8 @@ char** DeleteNode(char** node, char **list)// Function delete node and return th
 
 void StringListRemove(char** list, char* str)// delete ever
 {
+	if (list == NULL)
+		return;
 	char **ptr = getPrev(list);// from the end. In ored to save root
 	while (*ptr != *list && *ptr != NULL)//while inside list and !=NULL
 	{
@@ -297,6 +311,8 @@ void StringListRemoveDuplicates(char **list)
 void StringListReplaceInStrings(char** list, char* before, char* after)
 {
 	char *add_str = (char*)malloc(sizeof(char)*strlen(after)+ 1);//create the string in the memory
+	if (add_str == NULL)
+		return;
 	strcpy(add_str, after);// copy there "before" str
 	char **ptr = list;// pointer to the start
 	while ((ptr != NULL))
