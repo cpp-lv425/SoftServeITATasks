@@ -34,35 +34,41 @@ extern void ConcurrentCodeLinesCount();
 #include <windows.h>
 
 // If the condition is false, print "Assertion failed" and prompt to exit
-#define ERROR_TEXT_COLOR 12	// red color before the black background
-#define ASSERT(condition) if(!(condition)) {											\
-	if (!g_isConsoleInitialized) InitializeConsole();									\
-	SetConsoleTextAttribute(g_consoleHandler, ERROR_TEXT_COLOR);						\
-	std::cout << "Assertion failed, press any key to continue" << std::endl;			\
-	SetConsoleTextAttribute(g_consoleHandler, g_consoleDefaultAttributes.wAttributes);	\
-	system("pause"); exit(1); }
+//#define ERROR_TEXT_COLOR 12	// red color before the black background
+const int ERROR_TEXT_COLOR = 12; // red color before the black background
+bool g_isConsoleInitialized = false;
 
 HANDLE						g_consoleHandler;
 CONSOLE_SCREEN_BUFFER_INFO	g_consoleDefaultAttributes;
-bool g_isConsoleInitialized = false;
 
-inline void InitializeConsole() {
+inline void ConsoleInit()
+{
+	if (g_isConsoleInitialized) return;
 	g_consoleHandler = GetStdHandle(STD_OUTPUT_HANDLE);
 	GetConsoleScreenBufferInfo(g_consoleHandler, &g_consoleDefaultAttributes);
 	g_isConsoleInitialized = true;
 }
 
+void ASSERT(bool _condition)
+{
+	if (_condition) return;
+	ConsoleInit();
+	SetConsoleTextAttribute(g_consoleHandler, ERROR_TEXT_COLOR);
+	std::cout << "Assertion failed, press any key to continue" << std::endl;
+	SetConsoleTextAttribute(g_consoleHandler, g_consoleDefaultAttributes.wAttributes);
+	system("pause");
+	exit(EXIT_FAILURE);
+}
 
 int main(int argc, char ** argv)
 {
-	InitializeConsole();
+	ConsoleInit();
 
 	using std::cout;
 	using std::endl;
 
+	ASSERT (2 != 1);
 
-
-	ASSERT (2 != 1)
     system("pause");
 	return 0;
 }
