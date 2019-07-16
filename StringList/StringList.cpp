@@ -1,8 +1,6 @@
 #include "stringlist.h"
 #pragma warning(disable: 4996)
 
-#include <iostream>
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,7 +9,7 @@ void StringListInit(char*** list)
     // creating dummy node
     try
     {
-         *list = NodeMemoryAllocation();
+        *list = NodeMemoryAllocation();
     } catch (const char*)
     {
         throw;
@@ -76,9 +74,6 @@ void StringListDestroy(char*** list)
     // deleting dummy node
     free(del);
 
-    if (!current)
-        return;
-
     // deleting nodes with data
     while (current)
     {
@@ -134,8 +129,6 @@ void StringListAdd(char** list, String str)
     }
 
     end = NextNode(end);
-
-    // pushing node to the end of list
     end[0] = str;
     end[1] = nullptr;
     list[0] = reinterpret_cast<char*>(end);
@@ -162,8 +155,7 @@ void StringListRemove(char** list, String str)
     }
 
     char** cur = reinterpret_cast<char**>(list[1]);
-    char** del;
-    char** prev = list;
+    char** del, **prev = list;
 
     while (cur)
     {
@@ -173,11 +165,8 @@ void StringListRemove(char** list, String str)
             cur = NextNode(cur);
 
             // prev is used reset pointers
-            ++prev;
-            *prev = reinterpret_cast<char*>(cur);
-
+            prev[1] = reinterpret_cast<char*>(cur);
             DeleteNode(del);
-            --prev;
 
             if(!cur)
                 list[0] = reinterpret_cast<char*>(prev);
@@ -277,16 +266,11 @@ void StringListRemoveDuplicates(char** list)
                 del = current;
                 current = NextNode(current);
 
-                ++prev;
-                *prev = reinterpret_cast<char*>(current);
-
+                prev[1] = reinterpret_cast<char*>(current);
                 DeleteNode(del);
-                --prev;
 
                 if(!current)
-                {
                     list[0] = reinterpret_cast<char*>(prev);
-                }
             }
             else
             {
@@ -301,7 +285,6 @@ void StringListRemoveDuplicates(char** list)
         // unique moves to next item
         unique = NextNode(unique);
         current = unique;
-
         prev = current;
         current = NextNode(current);
     }
@@ -390,7 +373,6 @@ void StringListReplaceInStrings(char** list,
                 newStr = ReplaceSubstringInString
                         (reinterpret_cast<char*>(cur[0]),
                         before, after);
-
                 *cur = reinterpret_cast<char*>(newStr);
                 free(del);
 
@@ -401,7 +383,6 @@ void StringListReplaceInStrings(char** list,
                 free(after);
                 throw;
             }
-
         }
         cur = NextNode(cur);
     }

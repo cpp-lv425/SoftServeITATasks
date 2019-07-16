@@ -6,29 +6,21 @@
 #include <limits>
 #include <cstring>
 
-
-
-
-
 using std::cout;
 using std::cin;
 using std::ios_base;
 
-
 void TraverseList(char** list)
 {
-
-    cout << "The list consists of the following items:\n\n";
+    cout << "The list consists of the following items:\n";
     char** cur = reinterpret_cast<char**>(list[1]);
 
-    for (int i = 1; cur;
-         cur = NextNode(cur), ++i)
+    for (int i = 1; cur; cur = NextNode(cur), ++i)
     {
         cout << "Item No. " << i
              << '\t' << reinterpret_cast<char*>(cur[0])
                 << '\n';
     }
-
     cout << "\n\n";
 }
 
@@ -46,13 +38,13 @@ int PromptIntInRange(int start, int end)
                 throw std::exception();
             break;
         }
-        catch (const ios_base::failure& e)
+        catch (const ios_base::failure&)
         {
             cout << "\nIncorrect input. Enter an integer.\n";
             cin.clear();
             cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        catch (const std::exception& e)
+        catch (const std::exception&)
         {
             cout << "\nIncorrect input. Enter number from "
                  << start << " through " << end << std::endl;
@@ -100,7 +92,6 @@ char* InputString()
         cout << "Empty line has been entered.\n";
         // checked for null earlier
         free(buf);
-
         return  nullptr;
     }
     char* input = static_cast<char*>(malloc(sizeof(char) * size));
@@ -111,7 +102,6 @@ char* InputString()
 
         // checked for null earlier
         free(buf);
-
         return  nullptr;
     }
 
