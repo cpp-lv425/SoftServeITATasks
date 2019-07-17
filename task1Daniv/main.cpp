@@ -1,5 +1,22 @@
-#include "stringlist.h"
 #include <iostream>
+
+#include <stdio.h>
+#include "stringlist.h"
+
+void print(const List &list)
+{
+    if(list == nullptr)
+    {
+        return;
+    }
+    auto temp = list;
+    for(int i = 0; i < size(list); ++i)
+    {
+        printf("%s\n",temp[0]);
+        temp = reinterpret_cast<List>(temp[1]);
+
+    }
+}
 int main()
 {
     List list = initialization();
@@ -8,16 +25,11 @@ int main()
     push(list,"danissimo");
     push(list,"zzz");
     push(list,"aaa");
-    sort(list);
-    print(list);
-
-    std::cout<<"---------------------------------"<<std::endl;
     push(list,"igor");
-    print(list);
-    std::cout<<"---------------------------------"<<std::endl;
-    std::cout<<"---------------------------------"<<std::endl;
 
-    deleteDuplicates(list);
+    print(list);
+
+    replaceStrings(list,"igor","bbb");
     print(list);
 
 }

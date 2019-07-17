@@ -4,6 +4,7 @@
 using String = char*;
 using List = char **;
 
+//allocate memory for new list
 List initialization();
 
 void destroy(List &list);
@@ -21,7 +22,5 @@ void deleteDuplicates(List &list);
 void replaceStrings(List &list, const String &first, const String &second);
 
 void sort(List &list);
-
-void print(const List &list);
 
 #endif // STRINGLIST_H

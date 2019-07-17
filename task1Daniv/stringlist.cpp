@@ -1,7 +1,6 @@
 #include "stringlist.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 const int dataIndex = 0;
@@ -47,21 +46,6 @@ void push(List &list, const String &string)
     }
 }
 
-void print(const List &list)
-{
-    if(list == nullptr)
-    {
-        return;
-    }
-    auto temp = list;
-    for(int i = 0; i < size(list); ++i)
-    {
-        printf("%s\n",temp[dataIndex]);
-        temp = reinterpret_cast<List>(temp[nextNodeIndex]);
-
-    }
-}
-
 int size(const List &list)
 {
     if(list == nullptr)
@@ -83,7 +67,7 @@ int index(const List &list, const String &string)
 {
     if(list == nullptr || string == nullptr)
     {
-        return -2;
+        return -1;
     }
 
     auto temp = list;
@@ -133,12 +117,13 @@ void remove(List &list, const String &string)
     }
     auto temp = list;
     auto prev = list;
-    if(stringIndex == 0 && size(list) !=0)
+    if(stringIndex == 0 && size(list) != 0)
     {
         free(list[dataIndex]);
         list = reinterpret_cast<List>(list[nextNodeIndex]);
+        remove(list,string);
     }
-    else if(stringIndex == 0 && size(list) == 0)
+    else if(stringIndex == 0 && size(list) == 1)
     {
         free(list[dataIndex]);
         free(list);
@@ -155,6 +140,7 @@ void remove(List &list, const String &string)
         prev[nextNodeIndex] = temp[nextNodeIndex];
         free(temp[dataIndex]);
         free(temp);
+        remove(list,string);
     }
 }
 
@@ -198,28 +184,26 @@ void replaceStrings(List &list, const String &first, const String &second)
         return;
     }
     int indexFirst = index(list,first);
-    int indexSecond = index(list,second);
 
-    if(indexFirst == indexSecond || indexFirst == -1 || indexSecond == -1)
+    if(indexFirst == -1)
     {
         return;
     }
 
     auto firstNode = list;
-    auto secondNode = list;
 
     for(int i = 0; i < indexFirst; ++i)
     {
         firstNode = reinterpret_cast<List>(firstNode[nextNodeIndex]);
     }
-    for(int i = 0; i < indexSecond; ++i)
-    {
-        secondNode = reinterpret_cast<List>(secondNode[nextNodeIndex]);
-    }
 
-    auto temp = firstNode[dataIndex];
-    firstNode[dataIndex] = secondNode[dataIndex];
-    secondNode[dataIndex] = temp;
+    free(firstNode[dataIndex]);
+
+    String textStr = static_cast<String>(malloc(sizeof(char) * strlen(second) + 1));
+    strcpy(textStr, second);
+
+    firstNode[dataIndex] = textStr;
+    replaceStrings(list,first,second);
 }
 
 void deleteDuplicates(List &list)
