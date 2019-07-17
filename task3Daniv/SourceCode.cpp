@@ -7,7 +7,6 @@ class SourceCode
 public:
 	void TestMethod()
 	{
-
 		//comment1
 
 		/*comment2*/ int i; //comment3
@@ -22,14 +21,14 @@ public:
 		std::cout << "  ";
 		std::cout << "//igor";
 		std::cout << "/*  */";
-		int l; /*comment10
+		int l; /*comment 10
 
-		hernja
 		 */ int la;
 
-		return;//test
-		int jj;/*5566*/jj = 1;
-			std::cout<<"///////";//kej
+		return;//comment11
+		int jj;
+		jj = 1;
+			std::cout<<"///////";//comment12
 
 
 	}

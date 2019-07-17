@@ -1,40 +1,44 @@
-#include <regex>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <algorithm>
+﻿#include "stdafx.h"
+#include "codeanalyzer.h"
+#include "threadpool.h"
 
-using namespace std;
-
-int main()
+int _tmain(int argc, _TCHAR* argv[])
 {
-    //Read file to string
-    ifstream in("SourceCode.cpp", ios::in);
-    istreambuf_iterator<char> beg(in), end;
-    string str(beg, end);
-    in.close();
+	std::vector<std::experimental::filesystem::path> paths;
 
-    str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
-    str.erase(std::remove(str.begin(), str.end(), '\v'), str.end());
-    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
-    std::cout << str;
+	std::string folder = "C:\\chess-qt-master\\Lab_5";
 
-    std::string codeString = str;
-    //remove " "
-    const std::regex vowels("\"(?:\\\\\"|.)*?\"");
+	for (auto& p : std::experimental::filesystem::recursive_directory_iterator(folder))
+	{
+		if (p.path().extension() == ".h"|| p.path().extension() == ".cpp"
+			|| p.path().extension() == ".hpp" || p.path().extension() == ".c")
+		{
+			paths.push_back(p.path());
+		}
+	}
 
-    std::stringstream result;
-    std::regex_replace(std::ostream_iterator<char>(result),str.begin(), str.end(), vowels, "");
-    str = result.str();
 
-    //remove comments and push in vector
-    string pattern("(/\\*([^*]|[\r\n]|(\\*+([^*/]|[\r\n])))*\\*+/)|(//.*)");
-    regex r(pattern, regex_constants::egrep);
-    std::vector<std::string> comments;
-    for (sregex_iterator it(str.begin(), str.end(), r), end; it != end; ++it)
-    {
-        comments.push_back(it->str());
-    }
-    std::cout<<comments.size();
+	std::vector<CodeAnalyzer> analyzer;
+	for (auto a : paths)
+	{
+		analyzer.push_back(a);
+	}
+	ThreadPool pool(std::thread::hardware_concurrency());
+	std::vector< std::future<std::string>> results;
+
+	for (int i = 0; i < paths.size(); ++i) {
+		results.emplace_back(
+			pool.enqueue([&analyzer,i] {
+			std::string result = analyzer.at(i).getResult();
+			return result;
+		})
+		);
+	}
+
+	std::ofstream resultFile("test.txt");
+	for (auto&& result : results)
+		resultFile << result.get();
+
+	return 0;
 }
+
