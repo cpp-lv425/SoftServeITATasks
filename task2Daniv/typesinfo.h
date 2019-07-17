@@ -2,8 +2,8 @@
 #define TYPES_H
 
 #include <string>
-#include <type_traits>
 #include <iostream>
+#include <type_traits>
 
 enum class TypesEnum
 {
@@ -14,12 +14,12 @@ enum class TypesEnum
     Double,
 };
 
-struct TypesStruct
+union TypesUnion
 {
-    bool boolValue = 0;
-    char charValue = 0;
-    int intValue = 0;
-    double doubleValue = 0;
+    bool boolValue;
+    char charValue;
+    int intValue;
+    double doubleValue;
     void setNullValues()
     {
         boolValue = 0;
@@ -27,9 +27,10 @@ struct TypesStruct
         intValue = 0;
         doubleValue = 0;
     }
-    TypesStruct&operator=(const TypesStruct& other) = default;
-    TypesStruct(TypesStruct &&other) = default;
-    TypesStruct() = default;
+
+    TypesUnion&operator=(const TypesUnion& other) = default;
+    TypesUnion(TypesUnion &&other) = default;
+    TypesUnion() = default;
 };
 
 template <typename Type>
@@ -81,3 +82,4 @@ std::string getTypeName()
 }
 
 #endif // TYPES_H
+

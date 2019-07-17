@@ -23,7 +23,7 @@ AnyType &AnyType::operator=(AnyType &&other)
     return *this;
 }
 
-void AnyType::Swap(AnyType &left, AnyType &right)
+void swap(AnyType &left, AnyType &right)
 {
     std::swap(left.mData,right.mData);
     std::swap(left.mType,right.mType);
@@ -70,7 +70,7 @@ double AnyType::toDouble()
 {
     if(mType == TypesEnum::Double)
     {
-        return mData.boolValue;
+        return mData.doubleValue;
     }
     else
     {

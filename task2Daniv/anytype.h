@@ -23,7 +23,7 @@ public:
 
     ~AnyType() = default;
 
-    static void Swap(AnyType& left, AnyType& right);
+    friend void swap(AnyType& left, AnyType& right);
 
     bool toBool();
     char toChar();
@@ -35,7 +35,7 @@ public:
     TypesEnum type() const;
 
 private:
-    TypesStruct mData;
+    TypesUnion mData;
     TypesEnum mType = TypesEnum::Undefined;
     std::string mTypeName{""};
 

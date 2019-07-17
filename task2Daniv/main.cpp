@@ -6,6 +6,11 @@
 int main()
 {
     AnyType a = 10;
+    a = false;
+    AnyType anyType = 1;
+    anyType = true;
+    anyType = 1.7;
+    std::cout<<anyType.typeName();
     AnyType b(a);
     AnyType temp(18.2345);
     AnyType c(std::move(temp));
