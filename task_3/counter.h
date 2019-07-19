@@ -1,41 +1,37 @@
-#include <iostream>
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
+#pragma once
+
 #include <experimental/filesystem>
-#include <chrono>
 #include <queue>
-#include <fstream>
-using std::string;
-using namespace std::experimental::filesystem;
+#include <set>
 
 class Counter {
-	
-public:
-	Counter(path dir, string outFile);
-	~Counter() = default;
-
 	struct Statistics {					// store statistic data
 		size_t linesTotal = 0;
 		size_t linesBlank = 0;
 		size_t linesComment = 0;
 		size_t linesSource = 0;
 	};
+	Statistics statistic;
+public:
+	Counter(std::experimental::filesystem::path dir, std::string outFile);
+	~Counter() = default;
 
-	void searchFiles();					// recursively searching decent files and store it in [stat]
-	void countStatistic();					// main method to count statistics
-	void processFile(path & pathCurr, Statistics & stat);	// helper method counting statistics for one file
-	static void simplify(string & s);			// simplifying input string 
-
-	void getStatistic();					// summarizing statistic
-	string stat;						// all statistics
+	void addExtention(std::string);			// add extention to std::set [extentions]
+	void searchFiles();				// recursively searching decent files and store them in std::queue [files]
+	void countStatistic();				// main method to count statistics
+	void getStatistic();				// summarizing statistic
+	std::string stat;				// all statistics
 private:
-	path _dir;						// input directory
-	string _outFile;					// output file
-	std::queue<path> files;					// files to handle
+	bool compareExtention(std::string ext);				// compare [ext] with any in std::set [extentions]
+									// helper method count statistics for one file
+	void processFile(std::experimental::filesystem::path & pathCurr, Statistics & stat);	
+	static void simplify(std::string & s, bool & inMultiline);	// simplify input string 
+
+	std::experimental::filesystem::path _dir;		// input directory
+	std::string _outFile;					// output file
+	std::queue<std::experimental::filesystem::path> files;	// files to handle
 	bool finishedSearching;					// Counter::searchFiles() signalize finish of it tasks
 	int bunchFilesToPush;					// temporarely keeping this number of files in std::queue [_files]
 	int bunchFilesToProcess;				// poping from std::queue [files] this number of files to handle
-	
-	Statistics statistic;
+	std::set<std::string> extentions;			// contain file extentions
 };
