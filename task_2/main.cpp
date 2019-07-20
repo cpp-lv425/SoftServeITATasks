@@ -1,6 +1,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <exception>
+#include <string>
 
 using std::cout;
 using std::endl;
@@ -28,21 +29,20 @@ class Any {
 	ICloneable * ptr;			// pointer ICloneable * of base class can contain any type of it template child:
 						// ValueHolder<bool>, ValueHolder<int> or ValueHolder<double>
 public:
-	Any() : ptr {0} {}
+	Any() : ptr {nullptr} { }
 
 	template <typename T>
 	Any(const T & arg) {
-		string type = typeid(T).name();
-		if (type != "i" || type != "d" || type != "b")
-			ptr = 0;
+		if (typeid(T) != typeid(int) || typeid(T) != typeid(double) || typeid(T) != typeid(bool))
+			ptr = nullptr;
 		ptr = new  ValueHolder<T>(arg);
 	}
 
 	~Any() { delete ptr; };
 
 	Any(const Any & arg){
-		if (arg.ptr == 0)
-			ptr = 0;
+		if (arg.ptr == nullptr)
+			ptr = nullptr;
 		else
 			ptr = arg.ptr->clone();
 	}
@@ -56,11 +56,11 @@ public:
 	}
 	
 	Any(Any && arg){
-		if (arg.ptr == 0)
-			ptr = 0;
+		if (arg.ptr == nullptr)
+			ptr = nullptr;
 		else {		
 			ptr = arg.ptr->move();	
-			arg.ptr = 0;
+			arg.ptr = nullptr;
 		}
 	}
 
@@ -69,7 +69,7 @@ public:
 			if (ptr)	
 				delete ptr;
 			ptr = arg.ptr->move();
-			arg.ptr = 0;
+			arg.ptr = nullptr;
 		}
 		return * this;
 	}
@@ -77,33 +77,51 @@ public:
 	template <typename T>
 	T * cast() const {
 		ValueHolder<T> * tmp = dynamic_cast<ValueHolder<T> *>(ptr);
-		if (tmp == 0)
-			return 0;
+		if (tmp == nullptr)
+			return nullptr;
 		return &(tmp->data_);
 	}
 
 	template <typename T>
 	T castTo() const {		
 		ValueHolder<T> * tmp = dynamic_cast<ValueHolder<T> *>(ptr);
-		if (tmp == 0)
-			throw Any::BadCastTo();
+		if (tmp == nullptr)
+			throw BadCastTo();
 		return tmp->data_;
 	}
 	
 	string type() const {
+		int compilerType =
+		    #ifdef __clang__
+		        0;
+		    #elif defined(__GNUC__) || defined(__GNUG__)
+		        0;
+		    #elif _MSC_VER
+		        1;
+		    #endif
 		string type = typeid(*ptr).name();
-		if (type == "11ValueHolderIiE") return "int";
-		if (type == "11ValueHolderIbE") return "bool";
-		if (type == "11ValueHolderIdE") return "double";
-		return "empty";
+		switch (compilerType) {
+			case 0:
+				if (type == "11ValueHolderIiE") return "int";
+				if (type == "11ValueHolderIbE") return "bool";
+				if (type == "11ValueHolderIdE") return "double";
+				return "empty";
+			case 1:
+				if (type == "struct ValueHolder<int>") return "int";
+				if (type == "struct ValueHolder<bool>") return "bool";
+				if (type == "struct ValueHolder<double>") return "double";
+				return "empty";
+			default:
+				return "empty";
+		}
 	}
-	static void swap(Any & lhs, Any & rhs){
-		Any tmp = lhs;
-		lhs = rhs;
-		rhs = tmp;
+	static void swap(Any & lhs, Any & rhs) {
+		Any tmp(std::move(lhs));
+		lhs = std::move(rhs);
+		rhs = std::move(tmp);
 	}
 	
-	class BadCastTo: public std::exception {
+	class BadCastTo : public std::exception {
 		const char* _msg;
 	public:        
 		BadCastTo(const char* msg = "Bad castTo() exception: required type mismatch.\n"): _msg(msg) {    }
@@ -115,42 +133,32 @@ int main(){
 	cout << "start" << endl;
 	
 	Any empty;
-	
+	cout << "created empty object of Any type.\n" << endl;
+
 	Any any1 = 1;
 	Any any2 = 2.2;
 	cout << "created 2 objects of Any type: any1 = 1, any2 = 2.2\n" << endl;
 	int i1 = any1.castTo<int>();
-	if (i1 == 0)
-		cout << "any1 bad castTo to int" << endl;
-	else
-		cout << "any1 casted to int:" << i1 << endl;
+	cout << "any1 casted to int:" << i1 << endl;
 	string type = any1.type();
 	cout << "any1 has type:" << type << endl;
 
 	double d2 = any2.castTo<double>();
-	if (d2 == 0)
-		cout << "\nany2 bad castTo to double" << endl;
-	else
-		cout << "any2 casted to double:" << d2 << endl;
+	cout << "any2 casted to double:" << d2 << endl;
 	type = any2.type();
 	cout << "any2 has type:" << type << endl;
 
 	cout << "\nswaping ..." << endl;
 	Any::swap(any1, any2);
-	cout << "\tswaped." << endl;
+	cout << "\t\tswaped." << endl;
+
 	i1 = any2.castTo<int>();
-	if (i1 == 0)
-		cout << "any2 bad castTo to int" << endl;
-	else
-		cout << "i1:" << i1 << endl;
+	cout << "i1:" << i1 << endl;
 	type = any2.type();
 	cout << "any2 has type:" << type << endl;
 
 	d2 = any1.castTo<double>();
-	if (d2 == 0)
-		cout << "any1 bad castTo to double" << endl;
-	else
-		cout << "d2:" << d2 << endl;
+	cout << "d2:" << d2 << endl;
 	type = any1.type();
 	cout << "any1 has type:" << type << endl;
 
@@ -161,31 +169,25 @@ int main(){
 	cout << "\nany1 assigning to bool" << endl;
 	any1 = true;
 	bool flag = any1.castTo<bool>();
-	if (flag == 0)
-		cout << "any1 bad castTo to bool" << endl;
-	else
-		cout << "flag:" << flag << endl;
+	cout << "flag:" << flag << endl;
 	type = any1.type();
 	cout << "any1 has type:" << type << endl;
 
 	cout << "\nany1 assigning to double:" << endl;
 	any1 = 1.7;
 	d2 = any1.castTo<double>();
-	if (d2 == 0)
-		cout << "any1 bad castTo to double" << endl;
-	else
-		cout << "d2:" << d2 << endl;
+	cout << "d2:" << d2 << endl;
 	type = any1.type();
 	cout << "any1 has type:" << type << endl;
 	
 	cout << "\nbad cast situation modelling: casting any1 to int." << endl;
-	try {	
+	try {
 		i1 = any1.castTo<int>();
 	} catch (const Any::BadCastTo& e) {
 		std::cerr << e.what();
 	}
 
-	cout << "\nbad Any situation modelling: Any any3 = short which not supported." << endl;
+	cout << "\nwrong type assignment situation modelling: Any any3 = short which not supported." << endl;
 	short sh = 2;
 	Any any3 = sh;
 	type = any3.type();
@@ -194,4 +196,4 @@ int main(){
 	return 0;	
 }
 
-
+//https://rextester.com/l/cpp_online_compiler_visual
