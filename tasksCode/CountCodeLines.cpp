@@ -15,17 +15,21 @@ class ConcurrentLineCounter {
 public:
     // Names of the frequently used types
     typedef boost::uint64_t         CounterType;
-    typedef boost::atomic_uint64_t  ConcurrentCounterType;
+    typedef boost::atomic_bool      ConcurrentFlagType;
 private:
-    // Vector variable to store started processes
-    std::vector<boost::thread>      fileProcesses;
+    // Vector that allows accessing current processes and trigger variable to shutdown processes
+    std::vector<boost::thread>      concurrentProcesses;
+    static ConcurrentFlagType       joinConcurrentProcesses;
+    // Deque to store pending filenames
+    static std::deque<std::string>  pendingFilenames;
     // Variables to store the statistics about files
     static CounterType              filesCount;
-    static ConcurrentCounterType    blankLinesCount;
-    static ConcurrentCounterType    codeLinesCount;
-    static ConcurrentCounterType    commentLinesCount;
+    static CounterType    blankLinesCount;
+    static CounterType    codeLinesCount;
+    static CounterType    commentLinesCount;
     // Mutex to lock the counters incrementation as well as output
     static boost::mutex             updateCountersLock;
+    static boost::mutex             pendingFilenamesLock;
     // Constant variables with regex templates
     const static std::regex         blankStringRegex;
     const static std::regex         quotedStringRegex;
@@ -38,27 +42,63 @@ private:
     const static std::regex         linearCommentInPrefixRegex;
     const static std::string        cTypeEmptyComment;
 
-    static void CountLines(const std::string & fileName)
+    static bool IsPendingFilenames()
     {
-        // Convert file with a given filename into a fileContents string. Then replace quoted and raw strings
-        // inside with underscores since we don't need them and they can contain key symbol sequences:
-        // "string"  ->  _
-        std::ifstream file(fileName, std::ios::binary);
-        std::stringstream fileStream;
-        fileStream << file.rdbuf();
-        std::string fileContents(fileStream.str());
-        fileContents = std::regex_replace(fileContents, rawStringRegex, "_");
-        fileContents = std::regex_replace(fileContents, quotedStringRegex, "_");
-        // Count comment lines and blank along with code lines in the file content
-        auto localCommentLinesCount      = CountAndRemoveComments (fileContents);
-        auto localCodeAndBlankLinesCount = CountCodeAndBlankLines (fileContents);
-        // Lock the execution of thread until the end of this function' scope };
-        // to print name of the processed file and to modify shared counters
-        boost::mutex::scoped_lock localLock(updateCountersLock);
-        std::cout << "processed file: " << fileName << std::endl;
-        commentLinesCount += localCommentLinesCount;
-        codeLinesCount    += localCodeAndBlankLinesCount.first;
-        blankLinesCount   += localCodeAndBlankLinesCount.second;
+        // Lock access and verify if there is any pending filenames
+        boost::mutex::scoped_lock localLock(pendingFilenamesLock);
+        bool isEmpty = !pendingFilenames.empty();
+        return isEmpty;
+    }
+
+    static std::string PopPendingFilename()
+    {
+        // Lock access and pop pending pending filename
+        boost::mutex::scoped_lock localLock(pendingFilenamesLock);
+        if(pendingFilenames.empty())
+            return std::string();
+        const std::string fileName = pendingFilenames.front();
+        pendingFilenames.pop_front();
+        return fileName;
+    }
+
+    static void PushPendingFilename(const std::string &fileName)
+    {
+        // Lock access and append pending filename
+        boost::mutex::scoped_lock localLock(pendingFilenamesLock);
+        pendingFilenames.push_back(fileName);
+    }
+
+    static void CountLines()
+    {
+        // process filenames while there is pending filenames or joining is not forced
+        while(!joinConcurrentProcesses || IsPendingFilenames()) {
+            // Try to capture filename from pending filenames until success
+            std::string fileName = PopPendingFilename();
+            while (fileName.empty()) {
+                if(joinConcurrentProcesses) return;
+                boost::this_thread::yield();
+                fileName = PopPendingFilename();
+            }
+            // Convert file with a given filename into a fileContents string. Then replace quoted and raw strings
+            // inside with underscores since we don't need them and they can contain key symbol sequences:
+            // "string"  ->  _
+            std::ifstream file(fileName, std::ios::binary);
+            std::stringstream fileStream;
+            fileStream << file.rdbuf();
+            std::string fileContents(fileStream.str());
+            fileContents = std::regex_replace(fileContents, rawStringRegex, "_");
+            fileContents = std::regex_replace(fileContents, quotedStringRegex, "_");
+            // Count comment lines and blank along with code lines in the file content
+            auto localCommentLinesCount = CountAndRemoveComments(fileContents);
+            auto localCodeAndBlankLinesCount = CountCodeAndBlankLines(fileContents);
+            // Lock the execution of thread until the end of this function' scope };
+            // to print name of the processed file and to modify shared counters
+            boost::mutex::scoped_lock localLock(updateCountersLock);
+            std::cout << "processed file: " << fileName << std::endl;
+            commentLinesCount += localCommentLinesCount;
+            codeLinesCount += localCodeAndBlankLinesCount.first;
+            blankLinesCount += localCodeAndBlankLinesCount.second;
+        }
     };
 
     static CounterType CountAndRemoveComments(std::string & fileContents)
@@ -169,17 +209,26 @@ private:
 
     void JoinThreads()
     {
+        if (concurrentProcesses.empty()) return;
+        // Force joining
+        joinConcurrentProcesses = true;
         // Join all threads to ensure that all files have been processed
-        std::for_each(fileProcesses.begin(), fileProcesses.end(),
+        std::for_each(concurrentProcesses.begin(), concurrentProcesses.end(),
                       [](boost::thread & fileProcess) {
                           if(fileProcess.joinable())
                               fileProcess.join();
                       });
-        fileProcesses.clear();
+        concurrentProcesses.clear();
     }
 public:
-    ConcurrentLineCounter() {
-        fileProcesses = std::vector<boost::thread>();
+    explicit ConcurrentLineCounter(size_t processesNum = boost::thread::hardware_concurrency()) {
+        // start "processesNum" of concurrent processes and save their accessors to the vector
+        // if no "processesNum" parameter is specified hardware_concurrency is used
+        joinConcurrentProcesses = false;
+        concurrentProcesses = std::vector<boost::thread>();
+        for (CounterType processNo = 0; processNo < processesNum; ++processNo) {
+            concurrentProcesses.emplace_back(ConcurrentLineCounter::CountLines);
+        }
         filesCount        = 0;
         blankLinesCount   = 0;
         codeLinesCount    = 0;
@@ -188,22 +237,27 @@ public:
 
     void operator()(const std::string & fileName)
     {
-        // Count the lines in the file with a given filename
+        // Push given fileName to the pending filenames
         filesCount += 1;
-        fileProcesses.emplace_back(ConcurrentLineCounter::CountLines, fileName);
+        PushPendingFilename(fileName);
     };
 
     // Print collected statistics to the output stream
     friend std::ostream & operator << (std::ostream & outStream, ConcurrentLineCounter & linesCounter);
 
     ~ConcurrentLineCounter() {
-        // Wait until the last thread has finished its operation
+        // Wait until the last pending filename to be processed
         JoinThreads();
     }
 };
 
 // Static variables, used in the class
+// Locks for restricting concurrent access
 boost::mutex      ConcurrentLineCounter::updateCountersLock;
+boost::mutex      ConcurrentLineCounter::pendingFilenamesLock;
+// pendingFilenames that can be accessed by concurrent threads
+std::deque<std::string>  ConcurrentLineCounter::pendingFilenames;
+// Regex constants
 const std::regex  ConcurrentLineCounter::blankStringRegex                     (R"__(^\s*$)__");
 const std::regex  ConcurrentLineCounter::quotedStringRegex                    (R"__("(?:\\.|[^\\"\n])*")__");
 const std::regex  ConcurrentLineCounter::rawStringRegex                       (R"__(R"(.*)\((?:.|\n)*\)\1")__");
@@ -214,10 +268,13 @@ const std::regex  ConcurrentLineCounter::cTypeSequentialCommentsRegex         (R
 const std::regex  ConcurrentLineCounter::linearCommentRegex                   (R"__((//.*))__");
 const std::regex  ConcurrentLineCounter::linearCommentInPrefixRegex           (R"__(^.*//.*$)__");
 const std::string ConcurrentLineCounter::cTypeEmptyComment                    ("/**/");
+// Flag to force joining
+ConcurrentLineCounter::ConcurrentFlagType      ConcurrentLineCounter::joinConcurrentProcesses;
+// Counters to store statistics
 ConcurrentLineCounter::CounterType             ConcurrentLineCounter::filesCount;
-ConcurrentLineCounter::ConcurrentCounterType   ConcurrentLineCounter::blankLinesCount;
-ConcurrentLineCounter::ConcurrentCounterType   ConcurrentLineCounter::codeLinesCount;
-ConcurrentLineCounter::ConcurrentCounterType   ConcurrentLineCounter::commentLinesCount;
+ConcurrentLineCounter::CounterType   ConcurrentLineCounter::blankLinesCount;
+ConcurrentLineCounter::CounterType   ConcurrentLineCounter::codeLinesCount;
+ConcurrentLineCounter::CounterType   ConcurrentLineCounter::commentLinesCount;
 
 std::ostream & operator << (std::ostream & outStream, ConcurrentLineCounter & lineCounter) {
     // Wait until the last thread has finished its operation
