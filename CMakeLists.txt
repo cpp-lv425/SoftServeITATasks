@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.12)
-
+set (CMAKE_CXX_STANDARD 14)
 project (SoftServeITATasks)
 
-find_package(Boost REQUIRED COMPONENTS filesystem thread atomic regex chrono date_time)
+find_package(Boost REQUIRED COMPONENTS filesystem thread atomic)
 
 set (PROJECT_LIBRARY_DIRECTORIES
         ${PROJECT_LIBRARY_DIRECTORIES}
