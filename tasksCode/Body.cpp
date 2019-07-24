@@ -69,6 +69,8 @@ int main(int argc, char ** argv)
 
 	ASSERT (2 != 1);
 
+	ConcurrentCodeLinesCount();
+
     system("pause");
 	return 0;
 }
